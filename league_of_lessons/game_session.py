@@ -2,9 +2,10 @@ import numpy as np
 import math
 from typing import Optional
 from league_of_lessons.game_generation.coop_dnd_generation import generate_story_continuation
+from league_of_lessons.question_generation.multiple_choice import generate_multiple_choice_questions
 
 def adjust_dice_roll(dice_roll: int, dice_type: str, answer_correct: bool):
-    dice_max = int(next_events[-1]["dice_type"][1:])
+    dice_max = int(dice_type[1:])
 
     penalty = math.ceil(dice_max*0.25)
     bonus = math.ceil(dice_max*0.25)
@@ -16,14 +17,31 @@ def adjust_dice_roll(dice_roll: int, dice_type: str, answer_correct: bool):
 
 class GameSession:
 
-    def __init__(self, question_set: list = []):
+    def __init__(self, n_questions_request: int = 30):
 
-        self.question_set = question_set
+        self.question_set = None
+        self.study_material_filepath = None
+        self.n_questions_request = n_questions_request
         self.history = []
         
         self._initial_dice_roll = None
         self._current_question_idx = None
+        self.n_questions = None
 
+    def set_study_meterial(self, filepath):
+        '''
+        Generates questions using the study material in preparation for gameplay.
+        '''
+        self.study_material_filepath = filepath
+        with open(filepath, "r") as f:
+            study_material_txt = f.read()
+
+        self.question_set = generate_multiple_choice_questions(
+            study_material_txt,
+            n_questions = self.n_questions_request,
+        )
+
+        # NOTE: the LLM may end up producing a different number of questions
         self.n_questions = len(self.question_set)
 
     def reset(self):
@@ -42,12 +60,15 @@ class GameSession:
 
         if action is None:
             next_events = generate_story_continuation(history = self.history)
+            self.history += next_events
         elif action["event_type"] == "player_action":
             self.history.append(action)
             next_events = generate_story_continuation(history = self.history)
+            self.history += next_events
         elif action["event_type"] == "player_decision":
             self.history.append(action)
             next_events = generate_story_continuation(history = self.history)
+            self.history += next_events
         elif action["event_type"] == "player_answer":
             # NOTE: don't include the question and answer in the history
             # just the final dice roll
@@ -64,6 +85,7 @@ class GameSession:
                 "rolled_value": str(adjusted_dice_roll)
             })
             next_events = generate_story_continuation(history = self.history)
+            self.history += next_events
 
             # show result of question and dice adjustment for previous question
             next_events = [
@@ -90,7 +112,7 @@ class GameSession:
                 # select question
                 # for now, select question randomly
                 # later on consider question history, mastery, etc.
-                self._current_question_idx = np.random.rantint(1, self.n_questions + 1)
+                self._current_question_idx = np.random.randint(1, self.n_questions + 1)
 
                 # return events plus initial roll and question
                 return next_events + [
