@@ -31,16 +31,22 @@ def main():
     mid_cols = st.columns([1 for i in range(3)])
 
     with mid_cols[1]:
-        if st.button("Start Game"):
+        if st.button("New Game", use_container_width=True):
             st.switch_page("pages/gameplay.py")
 
-        if st.button("Manage Questions"):
+        if st.button("Continue Game", disabled = True, use_container_width=True):
+            st.switch_page("pages/gameplay.py")
+
+        if st.button("Manage Questions", use_container_width=True):
             st.switch_page("pages/manage_questions.py")
 
 
     # CSS
     st.markdown("""
         <style>
+        [data-testid="collapsedControl"] {
+            display: none
+        }
         h1 {text-align: center; color: grey;}
         div.stButton {text-align:center}
         </style>
