@@ -49,28 +49,53 @@ class GameState:
     '''
     Saves the game history, display image and audio.
     '''
-    pass
+    
+    def __init__(self
+        history: list = [],
+        img_path: Optional[str] = None,
+        audio_path: Optional[str] = None,
+    ):
+        self.history = history
+        self.img_path = img_path
+        self.audio_path = audio_path
 
 class GameSession:
 
-    def __init__(self, question_manager: QuestionManager = None):
+    def __init__(self, question_manager: QuestionManager = None, game_state = GameState = None):
 
         self.question_manager = question_manager
-        self.study_material_filepath = None
-        
-        self.history = []
         
         self._initial_dice_roll = None
         self._current_question_idx = None
 
+        if game_state is None:
+            self.reset()
+        else:
+            self.load_state(game_state = game_state)
+
     def reset(self):
         self.history = []
+        self.img_path = None
+        self.audio_path = None
 
-    def load_state(self, game_state: GameState = None):
-        pass
+    def load_state(self, game_state: GameState):
+        self.history = game_state.history
+        self.img_path = game_state.img_path
+        self.audio_path = game_state.audio_path
 
     def get_game_state(self):
-        pass
+        '''
+        NOTE: Saving game state should only be allowed
+            when awaiting player action.
+            Most recent event should be a required_action.
+
+            Do not allow saving while answering study question.
+        '''
+        return GameState(
+            history = self.history,
+            img_path = self.img_path,
+            audio_path = self.audio_path,
+        )
 
     def next(self, action: Optional[dict] = None):
         '''
