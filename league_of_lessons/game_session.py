@@ -50,7 +50,7 @@ class GameState:
     Saves the game history, display image and audio.
     '''
     
-    def __init__(self
+    def __init__(self,
         history: list = [],
         img_path: Optional[str] = None,
         audio_path: Optional[str] = None,
@@ -61,7 +61,7 @@ class GameState:
 
 class GameSession:
 
-    def __init__(self, question_manager: QuestionManager = None, game_state = GameState = None):
+    def __init__(self, question_manager: QuestionManager = None, game_state: GameState = None):
 
         self.question_manager = question_manager
         

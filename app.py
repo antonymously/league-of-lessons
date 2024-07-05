@@ -2,6 +2,7 @@
 Streamlit app
 '''
 import streamlit as st
+from league_of_lessons.game_session import QuestionManager
 
 st.set_page_config(
     page_title = "League of Lessons",
@@ -15,6 +16,9 @@ if 'selected_role' not in st.session_state:
 
 if 'game_state' not in st.session_state:
     st.session_state.game_state = None
+
+if 'question_manager' not in st.session_state:
+    st.session_state.question_manager = QuestionManager()
 
 def main():
 
