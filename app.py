@@ -9,6 +9,13 @@ st.set_page_config(
     initial_sidebar_state = "collapsed",
 )
 
+# Initialize session state variables
+if 'selected_role' not in st.session_state:
+    st.session_state.selected_role = 'teacher'
+
+if 'game_state' not in st.session_state:
+    st.session_state.game_state = None
+
 def main():
 
     top_cols = st.columns([1 for i in range(4)])
@@ -34,7 +41,10 @@ def main():
         if st.button("New Game", use_container_width=True):
             st.switch_page("pages/gameplay.py")
 
-        if st.button("Continue Game", disabled = True, use_container_width=True):
+        if st.button("Continue Game", 
+            disabled = (st.session_state.game_state is None), 
+            use_container_width=True
+        ):
             st.switch_page("pages/gameplay.py")
 
         if st.button("Manage Questions", use_container_width=True):
