@@ -54,6 +54,8 @@ def main():
         if st.button("Manage Questions", use_container_width=True):
             st.switch_page("pages/manage_questions.py")
 
+        if st.button("Manage API Keys", use_container_width=True):
+            st.switch_page("pages/manage_api_keys.py")
 
     # CSS
     st.markdown("""
