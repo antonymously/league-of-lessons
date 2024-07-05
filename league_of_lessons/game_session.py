@@ -15,20 +15,12 @@ def adjust_dice_roll(dice_roll: int, dice_type: str, answer_correct: bool):
     else:
         return max(dice_roll - penalty, 1)
 
-class GameSession:
+class QuestionManager:
 
     def __init__(self, n_questions_request: int = 30):
-
-        self.question_set = None
-        self.study_material_filepath = None
         self.n_questions_request = n_questions_request
-        self.history = []
-        
-        self._initial_dice_roll = None
-        self._current_question_idx = None
-        self.n_questions = None
-
-    def set_study_meterial(self, filepath):
+    
+    def set_study_material(self, filepath):
         '''
         Generates questions using the study material in preparation for gameplay.
         '''
@@ -44,8 +36,41 @@ class GameSession:
         # NOTE: the LLM may end up producing a different number of questions
         self.n_questions = len(self.question_set)
 
+    def get_question(self, question_idx: int = None):
+        '''
+        Returns the index of the question and the question itself.
+        '''
+        if question_idx is None:
+            question_idx = np.random.randint(1, self.n_questions + 1)
+        
+        return question_idx, self.question_set[question_idx]
+
+class GameState:
+    '''
+    Saves the game history, display image and audio.
+    '''
+    pass
+
+class GameSession:
+
+    def __init__(self, question_manager: QuestionManager = None):
+
+        self.question_manager = question_manager
+        self.study_material_filepath = None
+        
+        self.history = []
+        
+        self._initial_dice_roll = None
+        self._current_question_idx = None
+
     def reset(self):
         self.history = []
+
+    def load_state(self, game_state: GameState = None):
+        pass
+
+    def get_game_state(self):
+        pass
 
     def next(self, action: Optional[dict] = None):
         '''
@@ -73,7 +98,7 @@ class GameSession:
             # NOTE: don't include the question and answer in the history
             # just the final dice roll
 
-            is_correct = (action["answer"] == self.question_set[self._current_question_idx]["correct_answer"])
+            is_correct = (action["answer"] == self.question_manager.get_question(self._current_question_idx)[1]["correct_answer"])
             adjusted_dice_roll = adjust_dice_roll(
                 self._initial_dice_roll,
                 self.history[-1]["dice_type"],
@@ -92,7 +117,7 @@ class GameSession:
                 {
                     "event_type": "answer_assessment",
                     "assessment": "Correct" if is_correct else "Incorrect",
-                    "correct_answer": self.question_set[self._current_question_idx]["correct_answer"],
+                    "correct_answer": self.question_manager.question_set[self._current_question_idx]["correct_answer"],
                     "adjusted_dice_roll": str(adjusted_dice_roll),
                 }
             ] + next_events
@@ -112,7 +137,7 @@ class GameSession:
                 # select question
                 # for now, select question randomly
                 # later on consider question history, mastery, etc.
-                self._current_question_idx = np.random.randint(1, self.n_questions + 1)
+                self._current_question_idx, current_question = self.question_manager.get_question()
 
                 # return events plus initial roll and question
                 return next_events + [
@@ -122,7 +147,7 @@ class GameSession:
                     },
                     {
                         "event_type": "study_question",
-                        "question_text": self.question_set[self._current_question_idx]["question_text"],
-                        "choices": self.question_set[self._current_question_idx]["choices"],
+                        "question_text": current_question["question_text"],
+                        "choices": current_question["choices"],
                     },
                 ]
