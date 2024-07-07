@@ -29,6 +29,7 @@ class GameState:
         _current_question_idx: Optional[int] = None,
         _current_answer: Optional[dict] = None,
         _next_events: Optional[list] = None,
+        _study_score: Optional[list] = [0,0],
     ):
         self.history = history
         self.img_path = img_path
@@ -37,6 +38,7 @@ class GameState:
         self._current_question_idx = _current_question_idx
         self._current_answer = _current_answer
         self._next_events = _next_events
+        self._study_score = _study_score
 
 class GameSession:
 
@@ -58,6 +60,7 @@ class GameSession:
         self._current_question_idx = None
         self._current_answer = None
         self._next_events = None
+        self._study_score = [0,0]
 
     def load_state(self, game_state: GameState):
         self.history = game_state.history
@@ -68,6 +71,7 @@ class GameSession:
         self._current_question_idx = game_state._current_question_idx
         self._current_answer = game_state._current_answer
         self._next_events = game_state._next_events
+        self._study_score = game_state._study_score
 
     def get_game_state(self):
         '''
@@ -85,6 +89,7 @@ class GameSession:
             _current_question_idx = self._current_question_idx,
             _current_answer = self._current_answer,
             _next_events = self._next_events,
+            _study_score = self._study_score,
         )
 
     def next(self, action: Optional[dict] = None):
@@ -116,6 +121,10 @@ class GameSession:
             self._current_answer = copy(action)
             self._current_answer["question_idx"] = self._current_question_idx
             is_correct = (action["answer"] == self.question_manager.get_question(self._current_question_idx)[1]["correct_answer"])
+            self._study_score[1] += 1
+            if is_correct:
+                self._study_score[0] += 1
+
             adjusted_dice_roll = adjust_dice_roll(
                 self._initial_dice_roll,
                 self.history[-1]["dice_type"],

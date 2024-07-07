@@ -48,6 +48,11 @@ with top_cols[0]:
         use_container_width = True,
     )
 
+with top_cols[1]:
+    study_score_container = st.empty()
+    with study_score_container:
+        st.write("Study Score: {}/{}".format(*game_session._study_score))
+
 with top_cols[3]:
     if st.button("Main Menu", use_container_width=True):
         st.switch_page("app.py")
