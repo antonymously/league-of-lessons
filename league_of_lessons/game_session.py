@@ -114,6 +114,7 @@ class GameSession:
             # just the final dice roll
 
             self._current_answer = copy(action)
+            self._current_answer["question_idx"] = self._current_question_idx
             is_correct = (action["answer"] == self.question_manager.get_question(self._current_question_idx)[1]["correct_answer"])
             adjusted_dice_roll = adjust_dice_roll(
                 self._initial_dice_roll,

@@ -46,39 +46,12 @@ with game_container:
     input_container = st.empty()
 
 def save_game():
+    # don't stream text when save button is clicked
     with open(SAVE_GAME_FILEPATH, "wb") as f:
         pickle.dump(game_session.get_game_state(), f)
 
-bottom_cols = st.columns([1 for i in range(4)])
-
-with bottom_cols[0]:
-    if st.button("History", disabled = True, use_container_width=True):
-        pass
-
-with bottom_cols[2]:
-    # NOTE: replace with on_click syntax when passing arguments
-    st.button(
-        "Save Game",
-        on_click = save_game,
-        use_container_width = True,
-    )
-
-with bottom_cols[3]:
-    if st.button("Main Menu", use_container_width=True):
-        st.switch_page("app.py")
-
-# CSS
-st.markdown("""
-    <style>
-    div.stVerticalBlock {
-        overflow-y: scroll;
-        height: 80%;
-    }
-    div.stButton {align:center; text-align:center}
-    </style>
-    """, 
-    unsafe_allow_html=True
-)
+    # don't stream text when save button is clicked
+    st.session_state.stream_story = False
 
 def display_current_game_state():
     if st.session_state.game_state is None:
@@ -87,17 +60,17 @@ def display_current_game_state():
 
     next_events = game_session._next_events
 
-    # TODO: if first action is "answer_assessment"
+    # if first action is "answer_assessment"
         # display correct answer
         # display adjusted dice roll
         # that's all, the rest can be viewed in history
     answer_assessment_container.empty()
     if next_events[0]["event_type"] == "answer_assessment":
-        current_question = st.session_state.question_manager.get_question(
-            game_session._current_question_idx
-        )[1]
         current_answer = game_session._current_answer
-
+        current_question = st.session_state.question_manager.get_question(
+            current_answer["question_idx"]
+        )[1]
+        
         with answer_assessment_container:
             assessment_details_container = st.container()
 
@@ -122,12 +95,15 @@ def display_current_game_state():
     for event in next_events:
         if event["event_type"] == "story_block":
             with story_container:
-                story_text = st.write_stream(
-                    fake_stream_text(
-                        event["story"],
-                        delay = 0.01
+                if st.session_state.stream_story:
+                    story_text = st.write_stream(
+                        fake_stream_text(
+                            event["story"],
+                            delay = 0.01
+                        )
                     )
-                )
+                else:
+                    story_text = st.write(event["story"])
 
     # display required action
     if next_events[-1]["event_type"] == "required_action":
@@ -136,12 +112,15 @@ def display_current_game_state():
         question_container.empty()
         if next_events[-1]["required_action"] in ["player_decision", "player_action"]:
             with question_container:
-                question_text = st.write_stream(
-                    fake_stream_text(
-                        next_events[-1]["prompt"],
-                        delay = 0.01
+                if st.session_state.stream_story:
+                    question_text = st.write_stream(
+                        fake_stream_text(
+                            next_events[-1]["prompt"],
+                            delay = 0.01
+                        )
                     )
-                )
+                else:
+                    question_text = st.write(next_events[-1]["prompt"])
 
         if next_events[-1]["required_action"] == "player_decision":
             # display choices
@@ -195,7 +174,10 @@ def display_current_game_state():
             for event in reversed(next_events):
                 if event["event_type"] == "required_action":
                     if event["required_action"] == "player_dice_roll":
-                        st.write_stream(fake_stream_text(event["prompt"], delay = 0.01))
+                        if st.session_state.stream_story:
+                            st.write_stream(fake_stream_text(event["prompt"], delay = 0.01))
+                        else:
+                            st.write(event["prompt"])
                         break
 
             # display initial dice roll
@@ -206,12 +188,15 @@ def display_current_game_state():
 
             st.write("STUDY QUESTION!")
             st.write("Answer the following question to adjust your dice roll:")
-            question_text = st.write_stream(
-                fake_stream_text(
-                    next_events[-1]["question_text"],
-                    delay = 0.01
+            if st.session_state.stream_story:
+                question_text = st.write_stream(
+                    fake_stream_text(
+                        next_events[-1]["question_text"],
+                        delay = 0.01
+                    )
                 )
-            )
+            else:
+                question_text = st.write(next_events[-1]["question_text"])
 
         input_container.empty()
         with input_container:
@@ -250,12 +235,42 @@ def apply_game_action(action: Optional[dict] = None):
     
     # TODO: remove loading indicator
 
-    # TODO: update game_state
+    # update game_state
     st.session_state.game_state = game_session.get_game_state()
 
-def save_game():
-    with open(SAVE_GAME_FILEPATH, "wb") as f:
-        pickle.dump(game_session.get_game_state(), f)
+    # set stream story to true
+    st.session_state.stream_story = True
+
+bottom_cols = st.columns([1 for i in range(4)])
+
+with bottom_cols[0]:
+    if st.button("History", disabled = True, use_container_width=True):
+        pass
+
+with bottom_cols[2]:
+    # NOTE: replace with on_click syntax when passing arguments
+    st.button(
+        "Save Game",
+        on_click = save_game,
+        use_container_width = True,
+    )
+
+with bottom_cols[3]:
+    if st.button("Main Menu", use_container_width=True):
+        st.switch_page("app.py")
+
+# CSS
+st.markdown("""
+    <style>
+    div.stVerticalBlock {
+        overflow-y: scroll;
+        height: 80%;
+    }
+    div.stButton {align:center; text-align:center}
+    </style>
+    """, 
+    unsafe_allow_html=True
+)
 
 def main():
     display_current_game_state()

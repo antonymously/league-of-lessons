@@ -31,6 +31,10 @@ if 'selected_role' not in st.session_state:
 if 'game_state' not in st.session_state:
     st.session_state.game_state = None
 
+if 'stream_story' not in st.session_state:
+    # NOTE: on certain interactions, we don't want to stream
+    st.session_state.stream_story = True
+
 if 'question_manager' not in st.session_state:
     st.session_state.question_manager = QuestionManager()
 
