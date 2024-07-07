@@ -2,6 +2,7 @@
 Utilities
 '''
 import time
+import json
 from textwrap import dedent
 
 def fake_stream_text(text, delay = 0.05):
@@ -40,7 +41,7 @@ def history_to_text(history):
         elif event["event_type"] == "study_question":
             history_text += "REQUIRED STUDY QUESTION:<br>"
             history_text += event["question_text"]
-            for key, choice in event["question_text"].items():
+            for key, choice in event["choices"].items():
                 history_text += "\n" + f"{key}. {choice}"
 
         elif event["event_type"] == "answer_assessment":
@@ -60,5 +61,18 @@ def history_to_text(history):
             history_text += "PLAYER ANSWER:<br>"
             history_text += event["answer"]
 
+        elif event["event_type"] == "player_dice_roll":
+            # no need to display this since it is also shown in answer_assessment
+            pass
 
     return history_text
+
+def story_history_only(history):
+    story_history = [e for e in history if e["event_type"] not in [
+        "initial_dice_roll",
+        "study_question",
+        "answer_assessment",
+        "player_answer",
+    ]]
+
+    return story_history

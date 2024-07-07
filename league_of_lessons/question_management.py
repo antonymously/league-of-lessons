@@ -29,7 +29,7 @@ class QuestionManager:
         Returns the index of the question and the question itself.
         '''
         if question_idx is None:
-            question_idx = np.random.randint(1, self.n_questions + 1)
+            question_idx = np.random.randint(0, self.n_questions)
         
         return question_idx, self.question_set[question_idx]
 

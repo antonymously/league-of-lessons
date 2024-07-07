@@ -2,8 +2,10 @@ import numpy as np
 import math
 from copy import copy
 from typing import Optional
+import json
 from league_of_lessons.game_generation.coop_dnd_generation import generate_story_continuation
 from league_of_lessons.question_management import QuestionManager
+from league_of_lessons.utils import story_history_only
 
 def adjust_dice_roll(dice_roll: int, dice_type: str, answer_correct: bool):
     dice_max = int(dice_type[1:])
@@ -102,22 +104,23 @@ class GameSession:
 
         Action is not required if history is empty (ie. story is just starting)
         '''
-
+        
         if action is None:
-            next_events = generate_story_continuation(history = self.history)
-            self.history += next_events
+            next_events = generate_story_continuation(history = story_history_only(self.history))
+
         elif action["event_type"] == "player_action":
-            self.history.append(action)
-            next_events = generate_story_continuation(history = self.history)
-            self.history += next_events
+            next_events = [action]
+            next_events += generate_story_continuation(history = story_history_only(self.history + [action]))
+
         elif action["event_type"] == "player_decision":
-            self.history.append(action)
-            next_events = generate_story_continuation(history = self.history)
-            self.history += next_events
+            next_events = [action]
+            next_events += generate_story_continuation(history = story_history_only(self.history + [action]))
+            
         elif action["event_type"] == "player_answer":
             # NOTE: don't include the question and answer in the history
             # just the final dice roll
 
+            next_events = [action]
             self._current_answer = copy(action)
             self._current_answer["question_idx"] = self._current_question_idx
             is_correct = (action["answer"] == self.question_manager.get_question(self._current_question_idx)[1]["correct_answer"])
@@ -127,34 +130,38 @@ class GameSession:
 
             adjusted_dice_roll = adjust_dice_roll(
                 self._initial_dice_roll,
-                self.history[-1]["dice_type"],
+                self.history[-3]["dice_type"],
                 answer_correct = is_correct,
             )
 
-            self.history.append({
-                "event_type": "player_dice_roll",
-                "rolled_value": str(adjusted_dice_roll)
-            })
-            next_events = generate_story_continuation(history = self.history)
-            self.history += next_events
-
-            # show result of question and dice adjustment for previous question
-            next_events = [
+            next_events += [
                 {
                     "event_type": "answer_assessment",
                     "assessment": "Correct" if is_correct else "Incorrect",
                     "correct_answer": self.question_manager.question_set[self._current_question_idx]["correct_answer"],
                     "adjusted_dice_roll": str(adjusted_dice_roll),
                 }
-            ] + next_events
+            ]
+
+            dice_roll_event = {
+                "event_type": "player_dice_roll",
+                "rolled_value": str(adjusted_dice_roll)
+            }
+
+            next_events += [dice_roll_event]
+
+            # exclude study question events
+            next_events += generate_story_continuation(history = story_history_only(self.history + [dice_roll_event]))
 
         if next_events[-1]["event_type"] == "story_block":
             # story has ended
             self._next_events = next_events
+            self.history += next_events
             return next_events
         elif next_events[-1]["event_type"] == "required_action":
             if next_events[-1]["required_action"] in ["player_action","player_decision"]:
                 self._next_events = next_events
+                self.history += next_events
                 return next_events
             elif next_events[-1]["required_action"] == "player_dice_roll":
                 dice_max = int(next_events[-1]["dice_type"][1:])
@@ -181,4 +188,5 @@ class GameSession:
                 ]
 
                 self._next_events = next_events
+                self.history += next_events
                 return next_events

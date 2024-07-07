@@ -79,7 +79,10 @@ def display_history():
         if len(game_session.history) <= 0:
             st.write("No history yet!")
         else:
-            st.markdown(history_to_text(game_session.history), unsafe_allow_html=True)
+            st.markdown(
+                history_to_text(game_session.history[:-len(game_session._next_events) + 1]), 
+                unsafe_allow_html=True
+            )
 
 def display_current_game_state():
     # display history before the game action
@@ -97,7 +100,8 @@ def display_current_game_state():
         # display adjusted dice roll
         # that's all, the rest can be viewed in history
     answer_assessment_container.empty()
-    if next_events[0]["event_type"] == "answer_assessment":
+    if next_events[1]["event_type"] == "answer_assessment":
+        assessment_event = next_events[1]
         current_answer = game_session._current_answer
         current_question = st.session_state.question_manager.get_question(
             current_answer["question_idx"]
@@ -108,7 +112,7 @@ def display_current_game_state():
 
         with assessment_details_container:
 
-            if next_events[0]["assessment"] == "Correct":
+            if assessment_event["assessment"] == "Correct":
                 st.write("Your answer ({}) is correct!".format(current_answer["answer"]))
             else:
                 st.write("Your answer ({}) is wrong!".format(current_answer["answer"]))
@@ -118,11 +122,9 @@ def display_current_game_state():
                         current_question["choices"][current_question["correct_answer"]],
                     )
                 )
-            st.write("Your dice roll has been adjusted to {}".format(next_events[0]["adjusted_dice_roll"]))
+            st.write("Your dice roll has been adjusted to {}".format(assessment_event["adjusted_dice_roll"]))
 
     # display story text
-    # BUG: when story text is long, if overwwrites previous text?
-
     story_container.empty()
     for event in next_events:
         if event["event_type"] == "story_block":
@@ -180,19 +182,25 @@ def display_current_game_state():
             with input_container:
                 action_input_container = st.container()
 
+            # TODO:
+            # BUG: does not submit on first click
+                # but refreshes the page...
+
             with action_input_container:
                 with st.form('Player Action'):
-                    action_input = st.text_area("", value = 'Do Something')
-                    st.form_submit_button(
-                        'Execute Action',
-                        on_click = apply_game_action,
-                        kwargs = {
-                            "action": {
-                                "event_type": "player_action",
-                                "action": action_input,
-                            }
-                        }
+                    action_input = st.text_area(
+                        "Your Action", 
+                        value = 'Do Something', 
+                        key = 'action_input'
                     )
+                    submit_button = st.form_submit_button(
+                        'Execute Action',
+                    )
+                if submit_button:
+                    apply_game_action({
+                        "event_type": "player_action",
+                        "action": st.session_state.action_input,
+                    })
 
     elif next_events[-1]["event_type"] == "study_question":
         # NOTE: will need to modify this for other question types

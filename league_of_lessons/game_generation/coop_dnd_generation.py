@@ -71,6 +71,7 @@ def generate_story_continuation(history: list = []):
         To end the story, do not provide any more required action.
 
         Try to require dice rolls moderately frequently, at least once every 5 story blocks.
+        Try to give an equal amount of player_decision and player_action prompts.
 
         Respond with only the json continuation. Don't provide any further explanation or introductions.
     ''').strip()
