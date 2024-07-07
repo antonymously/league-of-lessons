@@ -10,12 +10,26 @@ st.set_page_config(
     initial_sidebar_state = "collapsed",
 )
 
+# hide sidebar immediately
+st.markdown("""
+    <style>
+    [data-testid="collapsedControl"] {
+        display: none
+    }
+    </style>
+    """, 
+    unsafe_allow_html=True
+)
+
 # Initialize session state variables
 if 'selected_role' not in st.session_state:
     st.session_state.selected_role = 'teacher'
 
 if 'game_state' not in st.session_state:
     st.session_state.game_state = None
+
+if 'next_events' not in st.session_state:
+    st.session_state.next_events = None
 
 if 'question_manager' not in st.session_state:
     st.session_state.question_manager = QuestionManager()
@@ -60,9 +74,6 @@ def main():
     # CSS
     st.markdown("""
         <style>
-        [data-testid="collapsedControl"] {
-            display: none
-        }
         h1 {text-align: center; color: grey;}
         div.stButton {text-align:center}
         </style>
