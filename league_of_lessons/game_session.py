@@ -1,8 +1,9 @@
 import numpy as np
 import math
+from copy import copy
 from typing import Optional
 from league_of_lessons.game_generation.coop_dnd_generation import generate_story_continuation
-from league_of_lessons.question_generation.multiple_choice import generate_multiple_choice_questions
+from league_of_lessons.question_management import QuestionManager
 
 def adjust_dice_roll(dice_roll: int, dice_type: str, answer_correct: bool):
     dice_max = int(dice_type[1:])
@@ -15,37 +16,6 @@ def adjust_dice_roll(dice_roll: int, dice_type: str, answer_correct: bool):
     else:
         return max(dice_roll - penalty, 1)
 
-class QuestionManager:
-
-    def __init__(self, n_questions_request: int = 30):
-        self.n_questions_request = n_questions_request
-        self.n_questions = 0
-    
-    def set_study_material(self, filepath):
-        '''
-        Generates questions using the study material in preparation for gameplay.
-        '''
-        self.study_material_filepath = filepath
-        with open(filepath, "r") as f:
-            study_material_txt = f.read()
-
-        self.question_set = generate_multiple_choice_questions(
-            study_material_txt,
-            n_questions = self.n_questions_request,
-        )
-
-        # NOTE: the LLM may end up producing a different number of questions
-        self.n_questions = len(self.question_set)
-
-    def get_question(self, question_idx: int = None):
-        '''
-        Returns the index of the question and the question itself.
-        '''
-        if question_idx is None:
-            question_idx = np.random.randint(1, self.n_questions + 1)
-        
-        return question_idx, self.question_set[question_idx]
-
 class GameState:
     '''
     Saves the game history, display image and audio.
@@ -57,12 +27,14 @@ class GameState:
         audio_path: Optional[str] = None,
         _initial_dice_roll: Optional[int] = None,
         _current_question_idx: Optional[int] = None,
+        _current_answer: Optional[dict] = None,
     ):
         self.history = history
         self.img_path = img_path
         self.audio_path = audio_path
         self._initial_dice_roll = _initial_dice_roll
         self._current_question_idx = _current_question_idx
+        self._current_answer = _current_answer
 
 class GameSession:
 
@@ -82,6 +54,7 @@ class GameSession:
 
         self._initial_dice_roll = None
         self._current_question_idx = None
+        self._current_answer = None
 
     def load_state(self, game_state: GameState):
         self.history = game_state.history
@@ -90,6 +63,7 @@ class GameSession:
 
         self._initial_dice_roll = game_state._initial_dice_roll
         self._current_question_idx = game_state._current_question_idx
+        self._current_answer = game_state._current_answer
 
     def get_game_state(self):
         '''
@@ -105,6 +79,7 @@ class GameSession:
             audio_path = self.audio_path,
             _initial_dice_roll = self._initial_dice_roll,
             _current_question_idx = self._current_question_idx,
+            _current_answer = self._current_answer,
         )
 
     def next(self, action: Optional[dict] = None):
@@ -133,6 +108,7 @@ class GameSession:
             # NOTE: don't include the question and answer in the history
             # just the final dice roll
 
+            self._current_answer = copy(action)
             is_correct = (action["answer"] == self.question_manager.get_question(self._current_question_idx)[1]["correct_answer"])
             adjusted_dice_roll = adjust_dice_roll(
                 self._initial_dice_roll,

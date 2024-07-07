@@ -1,8 +1,9 @@
 '''
 Streamlit app
 '''
+import os
 import streamlit as st
-from league_of_lessons.game_session import QuestionManager
+from league_of_lessons.question_management import QuestionManager
 
 st.set_page_config(
     page_title = "League of Lessons",
@@ -36,9 +37,13 @@ if 'question_manager' not in st.session_state:
 
 # TEMP: set study material for testing
 # TODO: need to persist this between sessions
-if st.session_state.question_manager.n_questions == 0:
+questions_file = "./data/question_set.pkl"
+if os.path.exists(questions_file):
+    st.session_state.question_manager.load_questions(questions_file)
+else:
     study_material_filepath = "./data/noli_me_tangere/noli_me_tangere_study_material.txt"
     st.session_state.question_manager.set_study_material(study_material_filepath)
+    st.session_state.question_manager.save_questions(questions_file)
 
 def main():
 
@@ -63,6 +68,7 @@ def main():
 
     with mid_cols[1]:
         if st.button("New Game", use_container_width=True):
+            st.session_state.game_state = None
             st.switch_page("pages/gameplay.py")
 
         if st.button("Continue Game", 

@@ -1,6 +1,7 @@
 import streamlit as st
 from textwrap import dedent
 from typing import Optional
+from copy import copy
 from league_of_lessons.game_session import GameSession
 from league_of_lessons.utils import fake_stream_text
 
@@ -37,6 +38,7 @@ with image_container:
     st.image("./assets/placeholder.png")
 
 with game_container:
+    answer_assessment_container = st.empty()
     story_container = st.empty()
     question_container = st.empty()
     input_container = st.empty()
@@ -76,7 +78,37 @@ def display_current_game_state():
 
     next_events = st.session_state.next_events
 
+    # TODO: if first action is "answer_assessment"
+        # display correct answer
+        # display adjusted dice roll
+        # that's all, the rest can be viewed in history
+    answer_assessment_container.empty()
+    if next_events[0]["event_type"] == "answer_assessment":
+        current_question = st.session_state.question_manager.get_question(
+            game_session._current_question_idx
+        )[1]
+        current_answer = game_session._current_answer
+
+        with answer_assessment_container:
+            assessment_details_container = st.container()
+
+        with assessment_details_container:
+
+            if next_events[0]["assessment"] == "Correct":
+                st.write("Your answer ({}) is correct!".format(current_answer["answer"]))
+            else:
+                st.write("Your answer ({}) is wrong!".format(current_answer["answer"]))
+                st.write(
+                    "The correct answer was ({}) {}".format(
+                        current_question["correct_answer"], 
+                        current_question["choices"][current_question["correct_answer"]],
+                    )
+                )
+            st.write("Your dice roll has been adjusted to {}".format(next_events[0]["adjusted_dice_roll"]))
+
     # display story text
+    # BUG: when story text is long, if overwwrites previous text?
+
     story_container.empty()
     for event in next_events:
         if event["event_type"] == "story_block":
@@ -103,7 +135,7 @@ def display_current_game_state():
                 )
 
         if next_events[-1]["required_action"] == "player_decision":
-            # TODO: display choices
+            # display choices
             input_container.empty()
             with input_container:
                 choices_container = st.container()
@@ -131,6 +163,7 @@ def display_current_game_state():
             with action_input_container:
                 # MISSING FEATURE: pressing 'Enter' does not work with text_input in Streamlit
                 action_input = st.text_input("", value = "Do something")
+                # BUG: first click on this button does not work?
                 st.button(
                     "Execute Action",
                     on_click = apply_game_action,
@@ -149,7 +182,22 @@ def display_current_game_state():
             study_question_container = st.container()
         
         with study_question_container:
+            # NOTE: there should be a dice roll preceding the question
+            # display prompt for dice roll
+            for event in reversed(next_events):
+                if event["event_type"] == "required_action":
+                    if event["required_action"] == "player_dice_roll":
+                        st.write_stream(fake_stream_text(event["prompt"], delay = 0.01))
+                        break
+
+            # display initial dice roll
+            for event in reversed(next_events):
+                if event["event_type"] == "initial_dice_roll":
+                    st.write("You rolled an initial value of {}".format(event["rolled_value"]))
+                    break
+
             st.write("STUDY QUESTION!")
+            st.write("Answer the following question to adjust your dice roll:")
             question_text = st.write_stream(
                 fake_stream_text(
                     next_events[-1]["question_text"],
@@ -175,9 +223,15 @@ def display_current_game_state():
                     }
                 )
 
+        # TODO: display dice rolls
+
         # TODO: display image
 
         # TODO: add audio narration
+
+        # TODO: display history
+
+        # TODO: 
 
 def apply_game_action(action: Optional[dict] = None):
     print(action)
