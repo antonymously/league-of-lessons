@@ -28,6 +28,7 @@ class GameState:
         _initial_dice_roll: Optional[int] = None,
         _current_question_idx: Optional[int] = None,
         _current_answer: Optional[dict] = None,
+        _next_events: Optional[list] = None,
     ):
         self.history = history
         self.img_path = img_path
@@ -35,6 +36,7 @@ class GameState:
         self._initial_dice_roll = _initial_dice_roll
         self._current_question_idx = _current_question_idx
         self._current_answer = _current_answer
+        self._next_events = _next_events
 
 class GameSession:
 
@@ -55,6 +57,7 @@ class GameSession:
         self._initial_dice_roll = None
         self._current_question_idx = None
         self._current_answer = None
+        self._next_events = None
 
     def load_state(self, game_state: GameState):
         self.history = game_state.history
@@ -64,6 +67,7 @@ class GameSession:
         self._initial_dice_roll = game_state._initial_dice_roll
         self._current_question_idx = game_state._current_question_idx
         self._current_answer = game_state._current_answer
+        self._next_events = game_state._next_events
 
     def get_game_state(self):
         '''
@@ -80,6 +84,7 @@ class GameSession:
             _initial_dice_roll = self._initial_dice_roll,
             _current_question_idx = self._current_question_idx,
             _current_answer = self._current_answer,
+            _next_events = self._next_events,
         )
 
     def next(self, action: Optional[dict] = None):
@@ -135,9 +140,11 @@ class GameSession:
 
         if next_events[-1]["event_type"] == "story_block":
             # story has ended
+            self._next_events = next_events
             return next_events
         elif next_events[-1]["event_type"] == "required_action":
             if next_events[-1]["required_action"] in ["player_action","player_decision"]:
+                self._next_events = next_events
                 return next_events
             elif next_events[-1]["required_action"] == "player_dice_roll":
                 dice_max = int(next_events[-1]["dice_type"][1:])
@@ -151,7 +158,7 @@ class GameSession:
                 self._current_question_idx, current_question = self.question_manager.get_question()
 
                 # return events plus initial roll and question
-                return next_events + [
+                next_events = next_events + [
                     {
                         "event_type": "initial_dice_roll",
                         "rolled_value": str(self._initial_dice_roll),
@@ -162,3 +169,6 @@ class GameSession:
                         "choices": current_question["choices"],
                     },
                 ]
+
+                self._next_events = next_events
+                return next_events

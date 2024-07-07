@@ -2,6 +2,8 @@ import streamlit as st
 from textwrap import dedent
 from typing import Optional
 from copy import copy
+import pickle
+from league_of_lessons import SAVE_GAME_FILEPATH
 from league_of_lessons.game_session import GameSession
 from league_of_lessons.utils import fake_stream_text
 
@@ -43,6 +45,10 @@ with game_container:
     question_container = st.empty()
     input_container = st.empty()
 
+def save_game():
+    with open(SAVE_GAME_FILEPATH, "wb") as f:
+        pickle.dump(game_session.get_game_state(), f)
+
 bottom_cols = st.columns([1 for i in range(4)])
 
 with bottom_cols[0]:
@@ -51,8 +57,11 @@ with bottom_cols[0]:
 
 with bottom_cols[2]:
     # NOTE: replace with on_click syntax when passing arguments
-    if st.button("Save Game", use_container_width=True):
-        pass
+    st.button(
+        "Save Game",
+        on_click = save_game,
+        use_container_width = True,
+    )
 
 with bottom_cols[3]:
     if st.button("Main Menu", use_container_width=True):
@@ -76,7 +85,7 @@ def display_current_game_state():
         # New game, need to generate story
         apply_game_action()
 
-    next_events = st.session_state.next_events
+    next_events = game_session._next_events
 
     # TODO: if first action is "answer_assessment"
         # display correct answer
@@ -235,21 +244,18 @@ def apply_game_action(action: Optional[dict] = None):
 
     # TODO: put loading indicator while generating
 
-    # TODO: generate events
-    if action is not None:
-        next_events = game_session.next(action = action)
-    else:
-        if len(game_session.history) <= 0:
-            # no history, new game
-            next_events = game_session.next(action = action)
-        else:
-            next_events = st.session_state.next_events
-
+    # generate events
+    # NOTE: next events are already stored in game_session
+    next_events = game_session.next(action = action)
+    
     # TODO: remove loading indicator
 
     # TODO: update game_state
     st.session_state.game_state = game_session.get_game_state()
-    st.session_state.next_events = next_events
+
+def save_game():
+    with open(SAVE_GAME_FILEPATH, "wb") as f:
+        pickle.dump(game_session.get_game_state(), f)
 
 def main():
     display_current_game_state()

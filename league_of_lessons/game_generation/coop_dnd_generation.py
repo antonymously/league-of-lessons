@@ -70,7 +70,7 @@ def generate_story_continuation(history: list = []):
         Provide the dice_type only when the required_action is dice roll.
         To end the story, do not provide any more required action.
 
-        Try to require dice rolls frequently, at least once every 3 story blocks.
+        Try to require dice rolls moderately frequently, at least once every 5 story blocks.
 
         Respond with only the json continuation. Don't provide any further explanation or introductions.
     ''').strip()

@@ -3,6 +3,8 @@ Streamlit app
 '''
 import os
 import streamlit as st
+import pickle
+from league_of_lessons import SAVE_GAME_FILEPATH
 from league_of_lessons.question_management import QuestionManager
 
 st.set_page_config(
@@ -28,9 +30,6 @@ if 'selected_role' not in st.session_state:
 
 if 'game_state' not in st.session_state:
     st.session_state.game_state = None
-
-if 'next_events' not in st.session_state:
-    st.session_state.next_events = None
 
 if 'question_manager' not in st.session_state:
     st.session_state.question_manager = QuestionManager()
@@ -72,9 +71,12 @@ def main():
             st.switch_page("pages/gameplay.py")
 
         if st.button("Continue Game", 
-            disabled = (st.session_state.game_state is None), 
+            disabled = (not os.path.exists(SAVE_GAME_FILEPATH)), 
             use_container_width=True
         ):
+            with open(SAVE_GAME_FILEPATH, "rb") as f:
+                st.session_state.game_state = pickle.load(f)
+            
             st.switch_page("pages/gameplay.py")
 
         if st.button("Manage Questions", use_container_width=True):
