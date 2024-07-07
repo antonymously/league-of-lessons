@@ -34,6 +34,7 @@ game_session = GameSession(
 game_container = st.container()
 
 with game_container:
+    history_expander = st.expander('History')
     image_container = st.empty()
 
 with image_container:
@@ -53,11 +54,17 @@ def save_game():
     # don't stream text when save button is clicked
     st.session_state.stream_story = False
 
+def display_history():
+    # TODO: write history
+    with history_expander:
+        st.write("<history here>")
+
 def display_current_game_state():
     if st.session_state.game_state is None:
         # New game, need to generate story
         apply_game_action()
 
+    display_history()
     next_events = game_session._next_events
 
     # if first action is "answer_assessment"
@@ -244,10 +251,6 @@ def apply_game_action(action: Optional[dict] = None):
 bottom_cols = st.columns([1 for i in range(4)])
 
 with bottom_cols[0]:
-    if st.button("History", disabled = True, use_container_width=True):
-        pass
-
-with bottom_cols[2]:
     # NOTE: replace with on_click syntax when passing arguments
     st.button(
         "Save Game",
