@@ -5,7 +5,7 @@ from copy import copy
 import pickle
 from league_of_lessons import SAVE_GAME_FILEPATH
 from league_of_lessons.game_session import GameSession
-from league_of_lessons.utils import fake_stream_text
+from league_of_lessons.utils import fake_stream_text, history_to_text
 
 st.set_page_config(
     page_title = "League of Lessons",
@@ -30,6 +30,28 @@ game_session = GameSession(
     game_state = st.session_state.game_state,
 )
 
+def save_game():
+    # don't stream text when save button is clicked
+    with open(SAVE_GAME_FILEPATH, "wb") as f:
+        pickle.dump(game_session.get_game_state(), f)
+
+    # don't stream text when save button is clicked
+    st.session_state.stream_story = False
+
+top_cols = st.columns([1 for i in range(4)])
+
+with top_cols[0]:
+    # NOTE: replace with on_click syntax when passing arguments
+    st.button(
+        "Save Game",
+        on_click = save_game,
+        use_container_width = True,
+    )
+
+with top_cols[3]:
+    if st.button("Main Menu", use_container_width=True):
+        st.switch_page("app.py")
+
 # add in initial components
 game_container = st.container()
 
@@ -46,25 +68,23 @@ with game_container:
     question_container = st.empty()
     input_container = st.empty()
 
-def save_game():
-    # don't stream text when save button is clicked
-    with open(SAVE_GAME_FILEPATH, "wb") as f:
-        pickle.dump(game_session.get_game_state(), f)
-
-    # don't stream text when save button is clicked
-    st.session_state.stream_story = False
-
 def display_history():
-    # TODO: write history
+    # write history
     with history_expander:
-        st.write("<history here>")
+        if len(game_session.history) <= 0:
+            st.write("No history yet!")
+        else:
+            st.markdown(history_to_text(game_session.history), unsafe_allow_html=True)
 
 def display_current_game_state():
+    # display history before the game action
+        # so it does not include the new story block
+    display_history()
+
     if st.session_state.game_state is None:
         # New game, need to generate story
         apply_game_action()
-
-    display_history()
+    
     next_events = game_session._next_events
 
     # if first action is "answer_assessment"
@@ -248,20 +268,6 @@ def apply_game_action(action: Optional[dict] = None):
     # set stream story to true
     st.session_state.stream_story = True
 
-bottom_cols = st.columns([1 for i in range(4)])
-
-with bottom_cols[0]:
-    # NOTE: replace with on_click syntax when passing arguments
-    st.button(
-        "Save Game",
-        on_click = save_game,
-        use_container_width = True,
-    )
-
-with bottom_cols[3]:
-    if st.button("Main Menu", use_container_width=True):
-        st.switch_page("app.py")
-
 # CSS
 st.markdown("""
     <style>
@@ -270,6 +276,10 @@ st.markdown("""
         height: 80%;
     }
     div.stButton {align:center; text-align:center}
+    div[data-testid="stMarkdownContainer"] p {
+        max-height: 500px;
+        overflow-y: auto;
+    }
     </style>
     """, 
     unsafe_allow_html=True
