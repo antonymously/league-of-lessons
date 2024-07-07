@@ -19,6 +19,7 @@ class QuestionManager:
 
     def __init__(self, n_questions_request: int = 30):
         self.n_questions_request = n_questions_request
+        self.n_questions = 0
     
     def set_study_material(self, filepath):
         '''
@@ -54,10 +55,14 @@ class GameState:
         history: list = [],
         img_path: Optional[str] = None,
         audio_path: Optional[str] = None,
+        _initial_dice_roll: Optional[int] = None,
+        _current_question_idx: Optional[int] = None,
     ):
         self.history = history
         self.img_path = img_path
         self.audio_path = audio_path
+        self._initial_dice_roll = _initial_dice_roll
+        self._current_question_idx = _current_question_idx
 
 class GameSession:
 
@@ -65,9 +70,6 @@ class GameSession:
 
         self.question_manager = question_manager
         
-        self._initial_dice_roll = None
-        self._current_question_idx = None
-
         if game_state is None:
             self.reset()
         else:
@@ -78,10 +80,16 @@ class GameSession:
         self.img_path = None
         self.audio_path = None
 
+        self._initial_dice_roll = None
+        self._current_question_idx = None
+
     def load_state(self, game_state: GameState):
         self.history = game_state.history
         self.img_path = game_state.img_path
         self.audio_path = game_state.audio_path
+
+        self._initial_dice_roll = game_state._initial_dice_roll
+        self._current_question_idx = game_state._current_question_idx
 
     def get_game_state(self):
         '''
@@ -95,6 +103,8 @@ class GameSession:
             history = self.history,
             img_path = self.img_path,
             audio_path = self.audio_path,
+            _initial_dice_roll = self._initial_dice_roll,
+            _current_question_idx = self._current_question_idx,
         )
 
     def next(self, action: Optional[dict] = None):

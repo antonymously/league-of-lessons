@@ -76,8 +76,6 @@ def display_current_game_state():
 
     next_events = st.session_state.next_events
 
-    # TODO: display image
-
     # display story text
     story_container.empty()
     for event in next_events:
@@ -90,7 +88,7 @@ def display_current_game_state():
                     )
                 )
 
-    # TODO: display required action
+    # display required action
     if next_events[-1]["event_type"] == "required_action":
         # NOTE: dice_roll action should never get here
         # it should always go to study_question
@@ -125,17 +123,61 @@ def display_current_game_state():
                     )
 
         elif next_events[-1]["required_action"] == "player_action":
-            # TODO: display input box and execute button
+            # display input box and execute button
+            input_container.empty()
+            with input_container:
+                action_input_container = st.container()
 
-            # TEMP
-            with question_container:
-                st.write("<action input>")
-            pass
+            with action_input_container:
+                # MISSING FEATURE: pressing 'Enter' does not work with text_input in Streamlit
+                action_input = st.text_input("", value = "Do something")
+                st.button(
+                    "Execute Action",
+                    on_click = apply_game_action,
+                    kwargs = {
+                        "action": {
+                            "event_type": "player_action",
+                            "action": action_input,
+                        }
+                    }
+                )
 
     elif next_events[-1]["event_type"] == "study_question":
-        pass
+        # NOTE: will need to modify this for other question types
+        question_container.empty()
+        with question_container:
+            study_question_container = st.container()
+        
+        with study_question_container:
+            st.write("STUDY QUESTION!")
+            question_text = st.write_stream(
+                fake_stream_text(
+                    next_events[-1]["question_text"],
+                    delay = 0.01
+                )
+            )
 
-    # TODO: display input
+        input_container.empty()
+        with input_container:
+            choices_container = st.container()
+
+        with choices_container:
+            for key, choice in next_events[-1]["choices"].items():
+                st.button(
+                    f"{key}. {choice}",
+                    on_click = apply_game_action,
+                    use_container_width = True,
+                    kwargs = {
+                        "action": {
+                            "event_type": "player_answer",
+                            "answer": key,
+                        }
+                    }
+                )
+
+        # TODO: display image
+
+        # TODO: add audio narration
 
 def apply_game_action(action: Optional[dict] = None):
     print(action)

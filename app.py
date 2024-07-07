@@ -34,6 +34,12 @@ if 'next_events' not in st.session_state:
 if 'question_manager' not in st.session_state:
     st.session_state.question_manager = QuestionManager()
 
+# TEMP: set study material for testing
+# TODO: need to persist this between sessions
+if st.session_state.question_manager.n_questions == 0:
+    study_material_filepath = "./data/noli_me_tangere/noli_me_tangere_study_material.txt"
+    st.session_state.question_manager.set_study_material(study_material_filepath)
+
 def main():
 
     top_cols = st.columns([1 for i in range(4)])
