@@ -161,19 +161,18 @@ def display_current_game_state():
                 action_input_container = st.container()
 
             with action_input_container:
-                # MISSING FEATURE: pressing 'Enter' does not work with text_input in Streamlit
-                action_input = st.text_input("", value = "Do something")
-                # BUG: first click on this button does not work?
-                st.button(
-                    "Execute Action",
-                    on_click = apply_game_action,
-                    kwargs = {
-                        "action": {
-                            "event_type": "player_action",
-                            "action": action_input,
+                with st.form('Player Action'):
+                    action_input = st.text_area("", value = 'Do Something')
+                    st.form_submit_button(
+                        'Execute Action',
+                        on_click = apply_game_action,
+                        kwargs = {
+                            "action": {
+                                "event_type": "player_action",
+                                "action": action_input,
+                            }
                         }
-                    }
-                )
+                    )
 
     elif next_events[-1]["event_type"] == "study_question":
         # NOTE: will need to modify this for other question types
@@ -222,8 +221,6 @@ def display_current_game_state():
                         }
                     }
                 )
-
-        # TODO: display dice rolls
 
         # TODO: display image
 
