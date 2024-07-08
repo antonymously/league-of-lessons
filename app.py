@@ -38,8 +38,6 @@ if 'stream_story' not in st.session_state:
 if 'question_manager' not in st.session_state:
     st.session_state.question_manager = QuestionManager()
 
-# TEMP: set study material for testing
-# TODO: need to persist this between sessions
 st.session_state.questions_file = "./data/question_set.pkl"
 st.session_state.questions_state_file = "./data/questions_state.json"
 if os.path.exists(st.session_state.questions_file):
@@ -47,19 +45,15 @@ if os.path.exists(st.session_state.questions_file):
         st.session_state.questions_file,
         st.session_state.questions_state_file,
     )
+    st.session_state.question_set_available = True
 else:
-    study_material_filepath = "./data/noli_me_tangere/noli_me_tangere_study_material.txt"
-    st.session_state.question_manager.set_study_material(study_material_filepath)
-    st.session_state.question_manager.save_state(
-        st.session_state.questions_file,
-        st.session_state.questions_state_file,
-    )
+    st.session_state.question_set_available = False
 
 def main():
 
     top_cols = st.columns([1 for i in range(4)])
     with top_cols[3]:
-        option = st.selectbox(
+        viewer_role = st.selectbox(
             "Viewing as:",
             (
                 "Teacher",
@@ -77,12 +71,16 @@ def main():
     mid_cols = st.columns([1 for i in range(3)])
 
     with mid_cols[1]:
-        if st.button("New Game", use_container_width=True):
+        if st.button(
+            "New Game", 
+            use_container_width=True,
+            disabled = (not st.session_state.question_set_available),
+        ):
             st.session_state.game_state = None
             st.switch_page("pages/gameplay.py")
 
         if st.button("Continue Game", 
-            disabled = (not os.path.exists(SAVE_GAME_FILEPATH)), 
+            disabled = ((not os.path.exists(SAVE_GAME_FILEPATH)) or (not st.session_state.question_set_available)), 
             use_container_width=True
         ):
             with open(SAVE_GAME_FILEPATH, "rb") as f:
@@ -90,16 +88,23 @@ def main():
             
             st.switch_page("pages/gameplay.py")
 
-        if st.button("Manage Questions", use_container_width=True):
-            # load question manager state before switching page
-            st.session_state.question_manager.load_state(
-                st.session_state.questions_file,
-                st.session_state.questions_state_file,
-            )
-            st.switch_page("pages/manage_questions.py")
+        if viewer_role == "Teacher":
+            if st.button("Manage Questions", use_container_width=True):
+                # load question manager state before switching page
+                if st.session_state.question_set_available:
+                    st.session_state.question_manager.load_state(
+                        st.session_state.questions_file,
+                        st.session_state.questions_state_file,
+                    )
+                st.switch_page("pages/manage_questions.py")
 
-        if st.button("Manage API Keys", use_container_width=True):
-            st.switch_page("pages/manage_api_keys.py")
+            if st.button("Manage API Keys", use_container_width=True):
+                st.switch_page("pages/manage_api_keys.py")
+        else:
+            if st.session_state.question_set_available:
+                st.write("Assigned Question Set: {}".format(st.session_state.question_manager.name))
+            else:
+                st.write("No assigned question set")
 
     # CSS
     st.markdown("""

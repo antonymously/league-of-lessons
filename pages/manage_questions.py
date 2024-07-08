@@ -23,6 +23,10 @@ top_cols = st.columns([1 for i in range(4)])
 
 def save_questions():
     # save all changes made
+    st.session_state.question_manager.set_name(
+        st.session_state.question_set_new_name
+    )
+
     for q_idx, question in enumerate(st.session_state.question_manager.question_set):
         st.session_state.question_manager.question_enabled[q_idx] = st.session_state['q_enabled_' + str(q_idx)]
 
@@ -44,12 +48,6 @@ def display_question_management():
 
     st.title("Manage Question Set")
 
-    # Question Set Name
-    question_set_name_input = st.text_input(
-        "Question Set Name",
-        value = st.session_state.question_manager.name,
-    )
-
     # Upload Study Material
     study_material_uploader = st.file_uploader(
         "Upload Study Material",
@@ -60,8 +58,14 @@ def display_question_management():
     def regenerate_questions():
         # it can be used as a file-like object
         st.session_state.question_manager._set_study_material(study_material_uploader)
+        st.session_state.question_set_available = True
 
-    # TODO: Regenerate Questions
+        st.session_state.question_manager.save_state(
+            st.session_state.questions_file,
+            st.session_state.questions_state_file,
+        )
+
+    # Regenerate Questions
     regenerate_button = st.button(
         'Regenerate Questions',
         disabled = (study_material_uploader is None),
@@ -74,6 +78,10 @@ def display_question_management():
         # OPTIONAL: allow text edit of questions
         # OPTIONAL: allow to add new questions
     questions_container = st.empty()
+
+    if not st.session_state.question_set_available:
+        return
+
     questions_container.empty()
     with questions_container:
         questions_sub_container = st.form(
@@ -86,6 +94,16 @@ def display_question_management():
             'Save Changes',
             on_click = save_questions,
         )
+
+        # Question Set Name
+        question_set_name_input = st.text_input(
+            "Question Set Name",
+            value = st.session_state.question_manager.name,
+            key = 'question_set_new_name',
+        )
+
+        st.write("Questions:")
+
         for q_idx, question in enumerate(st.session_state.question_manager.question_set):
             q_key = 'q_enabled_' + str(q_idx)
             st.checkbox(
