@@ -40,13 +40,20 @@ if 'question_manager' not in st.session_state:
 
 # TEMP: set study material for testing
 # TODO: need to persist this between sessions
-questions_file = "./data/question_set.pkl"
-if os.path.exists(questions_file):
-    st.session_state.question_manager.load_questions(questions_file)
+st.session_state.questions_file = "./data/question_set.pkl"
+st.session_state.questions_state_file = "./data/questions_state.json"
+if os.path.exists(st.session_state.questions_file):
+    st.session_state.question_manager.load_state(
+        st.session_state.questions_file,
+        st.session_state.questions_state_file,
+    )
 else:
     study_material_filepath = "./data/noli_me_tangere/noli_me_tangere_study_material.txt"
     st.session_state.question_manager.set_study_material(study_material_filepath)
-    st.session_state.question_manager.save_questions(questions_file)
+    st.session_state.question_manager.save_state(
+        st.session_state.questions_file,
+        st.session_state.questions_state_file,
+    )
 
 def main():
 
@@ -84,6 +91,11 @@ def main():
             st.switch_page("pages/gameplay.py")
 
         if st.button("Manage Questions", use_container_width=True):
+            # load question manager state before switching page
+            st.session_state.question_manager.load_state(
+                st.session_state.questions_file,
+                st.session_state.questions_state_file,
+            )
             st.switch_page("pages/manage_questions.py")
 
         if st.button("Manage API Keys", use_container_width=True):

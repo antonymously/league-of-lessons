@@ -1,4 +1,5 @@
 import streamlit as st
+from copy import copy
 
 st.set_page_config(
     page_title = "League of Lessons",
@@ -6,11 +7,106 @@ st.set_page_config(
     initial_sidebar_state = "collapsed",
 )
 
-def main():
-    st.title("Current Question Set")
-    st.write("<Manage Questions>")
+# hide sidebar immediately
+st.markdown("""
+    <style>
+    [data-testid="collapsedControl"] {
+        display: none
+    }
+    </style>
+    """, 
+    unsafe_allow_html=True
+)
 
-    if st.button("Main Menu"):
+top_cols = st.columns([1 for i in range(4)])
+
+
+def save_questions():
+    # save all changes made
+    for q_idx, question in enumerate(st.session_state.question_manager.question_set):
+        st.session_state.question_manager.question_enabled[q_idx] = st.session_state['q_enabled_' + str(q_idx)]
+
+        # state stores the actual value, not the index
+        correct_key = st.session_state['q_ans_' + str(q_idx)][0]
+
+        st.session_state.question_manager.question_set[q_idx]["correct_answer"] = correct_key
+
+    st.session_state.question_manager.save_state(
+        st.session_state.questions_file,
+        st.session_state.questions_state_file,
+    )
+
+with top_cols[3]:
+    if st.button("Main Menu", use_container_width=True):
         st.switch_page("app.py")
 
-main()
+def display_question_management():
+
+    st.title("Manage Question Set")
+
+    # Question Set Name
+    question_set_name_input = st.text_input(
+        "Question Set Name",
+        value = st.session_state.question_manager.name,
+    )
+
+    # Upload Study Material
+    study_material_uploader = st.file_uploader(
+        "Upload Study Material",
+        type = ['txt'],
+        key = 'study_material_file',
+    )
+
+    def regenerate_questions():
+        # it can be used as a file-like object
+        st.session_state.question_manager._set_study_material(study_material_uploader)
+
+    # TODO: Regenerate Questions
+    regenerate_button = st.button(
+        'Regenerate Questions',
+        disabled = (study_material_uploader is None),
+        on_click = regenerate_questions,
+    )
+
+    # Question List
+        # with check-boxes for inclusion
+        # indicate correct answer (radio)
+        # OPTIONAL: allow text edit of questions
+        # OPTIONAL: allow to add new questions
+    questions_container = st.empty()
+    questions_container.empty()
+    with questions_container:
+        questions_sub_container = st.form(
+            'Question Set',
+            border = True,
+        )
+
+    with questions_sub_container:
+        submit_button = st.form_submit_button(
+            'Save Changes',
+            on_click = save_questions,
+        )
+        for q_idx, question in enumerate(st.session_state.question_manager.question_set):
+            q_key = 'q_enabled_' + str(q_idx)
+            st.checkbox(
+                question["question_text"],
+                value = st.session_state.question_manager.question_enabled[q_idx],
+                key = q_key,
+            )
+
+            options = [
+                f"{key}. {choice}" for key, choice in sorted(question["choices"].items())
+            ]
+            keys = list(sorted(question["choices"].keys()))
+            ans_index = keys.index(question["correct_answer"])
+
+            qa_key = 'q_ans_' + str(q_idx)
+            # NOTE: how to indent these choices?
+            st.radio(
+                "Choices:",
+                options = options,
+                index = ans_index,
+                key = qa_key,
+            )
+
+display_question_management()
