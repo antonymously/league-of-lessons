@@ -91,5 +91,30 @@ def generate_story_continuation(history: list = []):
             {"role": "user", "content": prompt},
         ],
     )
+    continuation = json.loads(response.content[0].text)
 
-    return json.loads(response.content[0].text)
+    # NOTE: there's a bug where sometimes the LLM provides it's own player action
+        # when it starts to get the pattern from history
+        # to avoid this, just get the first two items - story_block and required_action
+    # NOTE: sometimes it also gives multiple story blocks in a row
+    return simplify_continuation(continuation)
+
+def simplify_continuation(continuation):
+    simplified_continuation = []
+    
+    compiled_story_block = {
+        "event_type": "story_block",
+        "story": "",
+    }
+    for event in continuation:
+        if event["event_type"] == "story_block":
+            compiled_story_block["story"] += event["story"] + "\n"
+            continue
+        elif event["event_type"] == "required_action":
+            compiled_story_block["story"] = compiled_story_block["story"].strip()
+            simplified_continuation.append(compiled_story_block)
+            simplified_continuation.append(event)
+            break
+        else:
+            continue
+    return simplified_continuation

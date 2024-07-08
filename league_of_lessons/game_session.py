@@ -123,6 +123,7 @@ class GameSession:
             next_events = [action]
             self._current_answer = copy(action)
             self._current_answer["question_idx"] = self._current_question_idx
+
             is_correct = (action["answer"] == self.question_manager.get_question(self._current_question_idx)[1]["correct_answer"])
             self._study_score[1] += 1
             if is_correct:

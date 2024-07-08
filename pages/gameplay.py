@@ -3,6 +3,7 @@ from textwrap import dedent
 from typing import Optional
 from copy import copy
 import pickle
+import time
 from league_of_lessons import SAVE_GAME_FILEPATH
 from league_of_lessons.game_session import GameSession
 from league_of_lessons.utils import fake_stream_text, history_to_text
@@ -84,7 +85,34 @@ def display_history():
                 unsafe_allow_html=True
             )
 
+def apply_game_action(action: Optional[dict] = None):
+    if st.session_state.action_input is not None:
+        action_ = {
+            "event_type": "player_action",
+            "action": st.session_state.action_input,
+        }
+    else:
+        action_ = action
+    print(action_)
+
+    # TODO: put loading indicator while generating
+
+    # generate events
+    # NOTE: next events are already stored in game_session
+    next_events = game_session.next(action = action_)
+    
+    # TODO: remove loading indicator
+
+    # update game_state
+    st.session_state.game_state = game_session.get_game_state()
+
+    # set stream story to true
+    st.session_state.stream_story = True
+
 def display_current_game_state():
+
+    st.session_state.action_input = None
+
     # display history before the game action
         # so it does not include the new story block
     display_history()
@@ -185,22 +213,27 @@ def display_current_game_state():
             # TODO:
             # BUG: does not submit on first click
                 # but refreshes the page...
+                
+                # I think it refreshes/runs without waiting for apply_game_action to finish!
 
             with action_input_container:
                 with st.form('Player Action'):
                     action_input = st.text_area(
                         "Your Action", 
-                        value = 'Do Something', 
+                        label_visibility = "collapsed",
+                        placeholder = 'Do Something', 
                         key = 'action_input'
                     )
                     submit_button = st.form_submit_button(
                         'Execute Action',
+                        on_click = apply_game_action,
                     )
-                if submit_button:
-                    apply_game_action({
-                        "event_type": "player_action",
-                        "action": st.session_state.action_input,
-                    })
+
+            # if submit_button:
+                # apply_game_action({
+                #     "event_type": "player_action",
+                #     "action": st.session_state.action_input,
+                # })
 
     elif next_events[-1]["event_type"] == "study_question":
         # NOTE: will need to modify this for other question types
@@ -264,22 +297,6 @@ def display_current_game_state():
 
         # TODO: 
 
-def apply_game_action(action: Optional[dict] = None):
-    print(action)
-
-    # TODO: put loading indicator while generating
-
-    # generate events
-    # NOTE: next events are already stored in game_session
-    next_events = game_session.next(action = action)
-    
-    # TODO: remove loading indicator
-
-    # update game_state
-    st.session_state.game_state = game_session.get_game_state()
-
-    # set stream story to true
-    st.session_state.stream_story = True
 
 # CSS
 st.markdown("""
