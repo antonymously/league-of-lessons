@@ -1,6 +1,7 @@
 # League of Lessons
 
-This application contains the 
+This application contains the League of Lessons. An educational LLM-based tabletop RPG that helps teachers and students learn a study material in an engaging and entertaining manner.
+
 ## Library Requirements Installation
 
 To install the necessary libraries for this application, run the command snippet below.
@@ -18,3 +19,9 @@ pip install -r requirements.txt
 ```
 
 ## Running the Application
+
+To run the application, do the following command:
+
+```sh
+streamlit run app.py
+```
