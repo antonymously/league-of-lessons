@@ -1,7 +1,6 @@
 # League of Lessons
 
-This application contains the League of Lessons. An educational LLM-based tabletop RPG that helps teachers and students
-to learn a study material in an engaging and entertaining manner.
+This application contains the League of Lessons. An educational LLM-based tabletop RPG that helps teachers and students learn a study material in an engaging and entertaining manner.
 
 ## Library Requirements Installation
 
