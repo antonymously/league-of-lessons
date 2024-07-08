@@ -210,12 +210,6 @@ def display_current_game_state():
             with input_container:
                 action_input_container = st.container()
 
-            # TODO:
-            # BUG: does not submit on first click
-                # but refreshes the page...
-                
-                # I think it refreshes/runs without waiting for apply_game_action to finish!
-
             with action_input_container:
                 with st.form('Player Action'):
                     action_input = st.text_area(
@@ -224,16 +218,13 @@ def display_current_game_state():
                         placeholder = 'Do Something', 
                         key = 'action_input'
                     )
+                    # NOTE: recommended approach here is to access session state variable
+                        # in the callback function
+                        # instead of adding it as args/kwargs here
                     submit_button = st.form_submit_button(
                         'Execute Action',
                         on_click = apply_game_action,
                     )
-
-            # if submit_button:
-                # apply_game_action({
-                #     "event_type": "player_action",
-                #     "action": st.session_state.action_input,
-                # })
 
     elif next_events[-1]["event_type"] == "study_question":
         # NOTE: will need to modify this for other question types
