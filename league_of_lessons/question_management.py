@@ -5,8 +5,7 @@ from league_of_lessons.question_generation.multiple_choice import generate_multi
 
 class QuestionManager:
 
-    def __init__(self, n_questions_request: int = 30):
-        self.n_questions_request = n_questions_request
+    def __init__(self):
         self.n_questions = 0
         self.name = "question_set"
         self.question_enabled = None
@@ -14,20 +13,20 @@ class QuestionManager:
     def set_name(self, name):
         self.name = name
     
-    def set_study_material(self, filepath):
+    def set_study_material(self, filepath, n_questions_request = 10):
         '''
         Generates questions using the study material in preparation for gameplay.
         '''
         self.study_material_filepath = filepath
         with open(filepath, "r") as f:
-            self._set_study_material(f)
+            self._set_study_material(f, n_questions_request = n_questions_request)
 
-    def _set_study_material(self, file_like):
+    def _set_study_material(self, file_like, n_questions_request = 10):
         study_material_txt = file_like.read()
 
         self.question_set = generate_multiple_choice_questions(
             study_material_txt,
-            n_questions = self.n_questions_request,
+            n_questions = n_questions_request,
         )
 
         # NOTE: the LLM may end up producing a different number of questions

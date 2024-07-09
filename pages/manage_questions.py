@@ -73,12 +73,16 @@ def display_question_management():
 
         if file_extension == ".txt":
             # it can be used as a file-like object
-            st.session_state.question_manager._set_study_material(study_material_uploader)
+            st.session_state.question_manager._set_study_material(
+                study_material_uploader,
+                n_questions_request = st.session_state.n_questions_request,
+            )
 
         elif file_extension == ".pdf":
             text_study_material = load_pdf_document(study_material_uploader)
             st.session_state.question_manager._set_study_material(
-                io.StringIO(text_study_material)
+                io.StringIO(text_study_material),
+                n_questions_request = st.session_state.n_questions_request,
             )
 
         st.session_state.question_set_available = True
@@ -87,12 +91,23 @@ def display_question_management():
             st.session_state.questions_state_file,
         )
 
-    # Regenerate Questions
-    regenerate_button = st.button(
-        'Regenerate Questions',
-        disabled = (study_material_uploader is None),
-        on_click = regenerate_questions,
-    )
+    generation_cols = st.columns([1,2])
+    with generation_cols[0]:
+        # Regenerate Questions
+        regenerate_button = st.button(
+            'Regenerate Questions',
+            disabled = (study_material_uploader is None),
+            on_click = regenerate_questions,
+        )
+    with generation_cols[1]:
+        n_questions_request = st.number_input(
+            'Number of Questions to Generate',
+            min_value = 1,
+            max_value = 50,
+            value = 10,
+            step = 1,
+            key = 'n_questions_request',
+        )
 
     # Question List
         # with check-boxes for inclusion
