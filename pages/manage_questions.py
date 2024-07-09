@@ -45,7 +45,7 @@ def save_questions():
         st.session_state.questions_state_file,
     )
 
-    # TODO: when changes to question set are saved
+    # when changes to question set are saved
     # just delete saved game state to avoid bugs
     if os.path.exists(SAVE_GAME_FILEPATH):
         os.remove(SAVE_GAME_FILEPATH)
@@ -64,8 +64,6 @@ def display_question_management():
         type = ['txt', 'pdf'],
         key = 'study_material_file',
     )
-
-    # TODO: allow control of number of questions to produce
 
     def regenerate_questions():
         # check file extension
