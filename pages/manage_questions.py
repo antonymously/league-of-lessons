@@ -1,8 +1,10 @@
+import os
 import streamlit as st
 from copy import copy
 from pathlib import Path
 import io
 from league_of_lessons.ingest.pdf import load_pdf_document
+from league_of_lessons import SAVE_GAME_FILEPATH
 
 st.set_page_config(
     page_title = "League of Lessons",
@@ -43,6 +45,11 @@ def save_questions():
         st.session_state.questions_state_file,
     )
 
+    # TODO: when changes to question set are saved
+    # just delete saved game state to avoid bugs
+    if os.path.exists(SAVE_GAME_FILEPATH):
+        os.remove(SAVE_GAME_FILEPATH)
+
 with top_cols[3]:
     if st.button("Main Menu", use_container_width=True):
         st.switch_page("app.py")
@@ -57,6 +64,8 @@ def display_question_management():
         type = ['txt', 'pdf'],
         key = 'study_material_file',
     )
+
+    # TODO: allow control of number of questions to produce
 
     def regenerate_questions():
         # check file extension
@@ -77,6 +86,7 @@ def display_question_management():
             st.session_state.questions_file,
             st.session_state.questions_state_file,
         )
+
     # Regenerate Questions
     regenerate_button = st.button(
         'Regenerate Questions',
