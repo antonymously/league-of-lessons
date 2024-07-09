@@ -189,3 +189,4 @@ zstandard==0.22.0
 pyht
 PyMuPDF
 langchain
+pdfminer

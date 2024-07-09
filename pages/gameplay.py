@@ -6,6 +6,7 @@ import pickle
 import time
 from league_of_lessons import SAVE_GAME_FILEPATH
 from league_of_lessons.game_session import GameSession
+from league_of_lessons.tts.tts import text_to_speech
 from league_of_lessons.utils import fake_stream_text, history_to_text
 
 st.set_page_config(
@@ -69,6 +70,7 @@ with image_container:
     st.image("./assets/placeholder.png")
 
 with game_container:
+    audio_container = st.empty()
     answer_assessment_container = st.empty()
     story_container = st.empty()
     question_container = st.empty()
@@ -156,6 +158,22 @@ def display_current_game_state():
     story_container.empty()
     for event in next_events:
         if event["event_type"] == "story_block":
+
+            # generate the narration
+            # TODO: can this be done async while streaming story?
+            # TODO: save this to game state
+            if st.session_state.stream_story:
+                narration_audio = text_to_speech(event["story"])
+                with audio_container:
+                    st.audio(
+                        narration_audio,
+                        loop = False,
+                        autoplay = True,
+                    )
+            else:
+                # TEMP: no audio when load game
+                pass
+
             with story_container:
                 if st.session_state.stream_story:
                     story_text = st.write_stream(
