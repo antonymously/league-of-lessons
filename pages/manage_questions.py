@@ -25,7 +25,6 @@ st.markdown("""
 
 top_cols = st.columns([1 for i in range(4)])
 
-
 def save_questions():
     # save all changes made
     st.session_state.question_manager.set_name(

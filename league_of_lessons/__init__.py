@@ -13,3 +13,7 @@ ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
 ANTHROPIC_CLIENT = anthropic.Anthropic(api_key = ANTHROPIC_API_KEY)
 SAVE_GAME_FILEPATH = "./data/saved_game_state.pkl"
+
+def set_anthropic_api_key(anthropic_api_key):
+    # use this to set anthropic API key manually
+    ANTHROPIC_CLIENT = anthropic.Anthropic(api_key = anthropic_api_key)
