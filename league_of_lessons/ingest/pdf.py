@@ -1,13 +1,17 @@
-from langchain_community.document_loaders import PyMuPDFLoader
+from pdfminer.high_level import extract_text
+
+# text = extract_text("example.pdf")
+# print(text)
 import tempfile
 
 
-def load_pdf_document(tmp_file_path):
+def load_pdf_document(byts):
     """Load the pdf document using PyMuPDFLoader"""
-    loader = PyMuPDFLoader(file_path=tmp_file_path)
-    text = loader.load()
+    # loader = PyMuPDFLoader(file_path=tmp_file_path)
+    # text = loader.load()
+    text = extract_text(byts)
 
-    return text.page_content
+    return text
 
 def load_files_and_get_chain(files):
     """On streamlit:
@@ -18,11 +22,11 @@ def load_files_and_get_chain(files):
 
     docs = []
     for file in files:
-        with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-            tmp_file.write(file.getbuffer())
-            tmp_file_path = tmp_file.name
+        # with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+        #     tmp_file.write(file.getbuffer())
+        #     tmp_file_path = tmp_file.name
         
-            doc_i = load_pdf_document(tmp_file_path) 
-            docs += doc_i
+        doc_i = load_pdf_document(file) 
+        docs.append(doc_i)
 
     return docs
