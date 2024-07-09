@@ -190,3 +190,4 @@ pyht
 PyMuPDF
 langchain
 pdfminer
+pdfminer-six

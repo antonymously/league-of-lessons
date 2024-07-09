@@ -1,5 +1,8 @@
 import streamlit as st
 from copy import copy
+from pathlib import Path
+import io
+from league_of_lessons.ingest.pdf import load_pdf_document
 
 st.set_page_config(
     page_title = "League of Lessons",
@@ -51,20 +54,29 @@ def display_question_management():
     # Upload Study Material
     study_material_uploader = st.file_uploader(
         "Upload Study Material",
-        type = ['txt'],
+        type = ['txt', 'pdf'],
         key = 'study_material_file',
     )
 
     def regenerate_questions():
-        # it can be used as a file-like object
-        st.session_state.question_manager._set_study_material(study_material_uploader)
-        st.session_state.question_set_available = True
+        # check file extension
+        file_extension = Path(study_material_uploader.name).suffix
 
+        if file_extension == ".txt":
+            # it can be used as a file-like object
+            st.session_state.question_manager._set_study_material(study_material_uploader)
+
+        elif file_extension == ".pdf":
+            text_study_material = load_pdf_document(study_material_uploader)
+            st.session_state.question_manager._set_study_material(
+                io.StringIO(text_study_material)
+            )
+
+        st.session_state.question_set_available = True
         st.session_state.question_manager.save_state(
             st.session_state.questions_file,
             st.session_state.questions_state_file,
         )
-
     # Regenerate Questions
     regenerate_button = st.button(
         'Regenerate Questions',

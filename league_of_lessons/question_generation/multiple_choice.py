@@ -8,7 +8,7 @@ from league_of_lessons import (
     ANTHROPIC_CLIENT,
 )
 
-def generate_multiple_choice_questions(study_material_txt, n_questions = 30):
+def generate_multiple_choice_questions(study_material_txt, n_questions = 10):
     '''
     Uses claude to generate multiple choice questions from the study material.
     Produces questions in a prescribed json format.
@@ -46,4 +46,10 @@ def generate_multiple_choice_questions(study_material_txt, n_questions = 30):
         ],
     )
 
-    return json.loads(response.content[0].text)
+    return json.loads(trim_to_json_list(response.content[0].text))
+
+def trim_to_json_list(json_text):
+    start_idx = json_text.find('[')
+    end_idx = json_text.rfind(']')
+
+    return json_text[start_idx:end_idx + 1]
