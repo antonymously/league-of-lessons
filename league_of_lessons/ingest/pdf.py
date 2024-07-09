@@ -1,4 +1,4 @@
-import PyMuPDFLoader
+from langchain_community.document_loaders import PyMuPDFLoader
 import tempfile
 
 
@@ -11,7 +11,7 @@ def load_pdf_document(tmp_file_path):
 
 def load_files_and_get_chain(files):
     """On streamlit:
-    ```st.file_uploader can accept multiple files. The uploaded files can be assigned to st.session_state as a list of bytesIO.
+    ```st.file_uploader can accept multiple files. The uploaded files can be assigned to st.session_state as a list of bytessIO.
 
     This function takes a list of those files and returns a list of text. 
     """

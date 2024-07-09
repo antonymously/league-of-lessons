@@ -188,3 +188,4 @@ zstandard==0.22.0
 # zstd==1.5.6
 pyht
 PyMuPDF
+langchain
