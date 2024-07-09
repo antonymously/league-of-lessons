@@ -11,14 +11,20 @@ if not os.environ.get('PYHT_VOICE_NARRATOR', False):
     # Set default Voice
     os.environ['PYHT_VOICE_NARRATOR'] = 's3://voice-cloning-zero-shot/b3def996-302e-486f-a234-172fa0279f0e/anthonysaad/manifest.json'
 
+PYHT_USER_ID = os.environ['PYHT_USER_ID']
+PYHT_SECRET = os.environ['PYHT_SECRET']
 
+def set_pyht_keys(pyht_user_id, pyht_secret):
+    # use this to set pyht keys externally
+    PYHT_USER_ID = pyht_user_id
+    PYHT_SECRET = pyht_secret
 
 def text_to_speech(text_to_convert):
     """Convert text to speech using pyht API"""
 
     client = Client(
-    user_id=os.environ['PYHT_USER_ID'], 
-    api_key=os.environ['PYHT_SECRET']
+        user_id = PYHT_USER_ID,
+        api_key = PYHT_SECRET,
     )
 
     options = TTSOptions(voice=os.environ['PYHT_VOICE_NARRATOR'])

@@ -4,8 +4,9 @@ Streamlit app
 import os
 import streamlit as st
 import pickle
-from league_of_lessons import SAVE_GAME_FILEPATH, set_anthropic_api_key
+from league_of_lessons import SAVE_GAME_FILEPATH, set_anthropic_api_key, set_openai_api_key
 from league_of_lessons.question_management import QuestionManager
+from league_of_lessons.tts.tts import set_pyht_keys
 
 st.set_page_config(
     page_title = "League of Lessons",
@@ -51,10 +52,36 @@ if os.path.exists(st.session_state.questions_file):
 else:
     st.session_state.question_set_available = False
 
-if '_anthropic_api_key' in st.session_state:
+if os.path.exists(st.session_state.api_keys_file):
+    with open(st.session_state.api_keys_file, "rb") as f:
+        api_keys = pickle.load(f)
+    st.session_state._anthropic_api_key = api_keys["_anthropic_api_key"]
+    st.session_state._openai_api_key = api_keys["_openai_api_key"]
+    st.session_state._pyht_user_id = api_keys["_pyht_user_id"]
+    st.session_state._pyht_secret = api_keys["_pyht_secret"]
+else:
+    st.session_state._anthropic_api_key = None
+    st.session_state._openai_api_key = None
+    st.session_state._pyht_user_id = None
+    st.session_state._pyht_secret = None
+
+if st.session_state._anthropic_api_key is not None:
     # if anthropic API key is available from session state
     # use that instead of the one from .env
     set_anthropic_api_key(st.session_state._anthropic_api_key)
+
+if st.session_state._openai_api_key is not None:
+    # if openai API key is available from session state
+    # use that instead of the one from .env
+    set_openai_api_key(st.session_state._openai_api_key)
+
+if (st.session_state._pyht_user_id is not None) and (st.session_state._pyht_secret is not None):
+    # if pyht API key is available from session state
+    # use that instead of the one from .env
+    set_pyht_keys(
+        st.session_state._pyht_user_id,
+        st.session_state._pyht_secret,
+    )
 
 def main():
 
@@ -106,19 +133,6 @@ def main():
                 st.switch_page("pages/manage_questions.py")
 
             if st.button("Manage API Keys", use_container_width=True):
-                if os.path.exists(st.session_state.api_keys_file):
-                    with open(st.session_state.api_keys_file, "rb") as f:
-                        api_keys = pickle.load(f)
-                    st.session_state._anthropic_api_key = api_keys["_anthropic_api_key"]
-                    st.session_state._openai_api_key = api_keys["_openai_api_key"]
-                    st.session_state._pyht_user_id = api_keys["_pyht_user_id"]
-                    st.session_state._pyht_secret = api_keys["_pyht_secret"]
-                else:
-                    st.session_state._anthropic_api_key = None
-                    st.session_state._openai_api_key = None
-                    st.session_state._pyht_user_id = None
-                    st.session_state._pyht_secret = None
-
                 st.switch_page("pages/manage_api_keys.py")
         else:
             if st.session_state.question_set_available:

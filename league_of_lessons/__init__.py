@@ -17,3 +17,6 @@ SAVE_GAME_FILEPATH = "./data/saved_game_state.pkl"
 def set_anthropic_api_key(anthropic_api_key):
     # use this to set anthropic API key manually
     ANTHROPIC_CLIENT = anthropic.Anthropic(api_key = anthropic_api_key)
+
+def set_openai_api_key(openai_api_key):
+    pass

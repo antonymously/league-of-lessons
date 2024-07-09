@@ -66,7 +66,7 @@ def display_api_key_management():
         )
 
         st.text_input(
-            "PlayHT Secred",
+            "PlayHT Secret",
             key = '_pyht_secret',
         )
 
