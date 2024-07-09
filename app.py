@@ -83,6 +83,10 @@ if (st.session_state._pyht_user_id is not None) and (st.session_state._pyht_secr
         st.session_state._pyht_secret,
     )
 
+# make data folder if it doesn't exist
+if not os.path.exists("./data"):
+    os.makedirs("./data") 
+
 def main():
 
     top_cols = st.columns([1 for i in range(4)])
