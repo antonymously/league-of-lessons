@@ -34,14 +34,6 @@ def generate_questions(study_material_txt, question_type="multiple_choice", n_qu
             }}
         ]
         '''
-    elif question_type == "essay":
-        question_format = '''
-        [
-            {{
-                "question_text": "<question text>"
-            }}
-        ]
-        '''
     elif question_type == "fill_in_the_blanks":
         question_format = '''
         [
