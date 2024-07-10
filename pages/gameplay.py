@@ -144,6 +144,34 @@ class ImageGenerationThread(threading.Thread):
             image_url = generate_image_from_story_lines(scenario_summary)
         self.image_url = image_url
 
+class StoryStreamingThread(threading.Thread):
+    def __init__(self, event):
+        threading.Thread.__init__(self)
+        self.event = event
+        
+    def run(self):
+
+        narration_audio = text_to_speech_openai(self.event["story"])
+        game_session.narration_audio = narration_audio
+        audio_container.empty()
+        with audio_container:
+            st.audio(
+                narration_audio,
+                loop = False,
+                autoplay = True,
+            )
+
+        story_container.empty()
+        with story_container:
+            if st.session_state.stream_story:
+                story_text = st.write_stream(
+                    fake_stream_text(
+                        self.event["story"],
+                        delay = 0.01
+                    )
+                )
+
+
 def display_current_game_state():
 
     st.session_state.action_input = None
@@ -192,31 +220,35 @@ def display_current_game_state():
     for event in next_events:
         if event["event_type"] == "story_block":
 
-            # generate image from the scenario summary
-            # TODO: do this in parallel
             if st.session_state.stream_story:
+                # generate image from the scenario summary
+                # do this in parallel
                 image_generation_thread = ImageGenerationThread()
                 ctx = get_script_run_ctx()
                 add_script_run_ctx(image_generation_thread)
                 image_generation_thread.start()
+
+                # stream story and audio
+                story_streaming_thread = StoryStreamingThread(event)
+                ctx = get_script_run_ctx()
+                add_script_run_ctx(story_streaming_thread)
+                story_streaming_thread.start()
+
+                story_streaming_thread.join()
+
+                # at this point, wait for image generation to finish
+                image_generation_thread.join()
+                image_url = image_generation_thread.image_url
+                game_session.image_url = image_url
+                image_container.empty()
+                with image_container:
+                    st.image(image_url)
             else:
                 image_container.empty()
                 with image_container:
                     st.image(game_session.image_url)
 
-
-            # generate the narration
-            # TODO: can this be done async while streaming story?
-            if st.session_state.stream_story:
-                narration_audio = text_to_speech_openai(event["story"])
-                game_session.narration_audio = narration_audio
-                with audio_container:
-                    st.audio(
-                        narration_audio,
-                        loop = False,
-                        autoplay = True,
-                    )
-            else:
+                audio_container.empty()
                 with audio_container:
                     st.audio(
                         game_session.narration_audio,
@@ -224,26 +256,10 @@ def display_current_game_state():
                         autoplay = True,
                     )
 
-            with story_container:
-                if st.session_state.stream_story:
-                    story_text = st.write_stream(
-                        fake_stream_text(
-                            event["story"],
-                            delay = 0.01
-                        )
-                    )
-                else:
+                story_container.empty()
+                with story_container:
                     story_text = st.write(event["story"])
-
-            # at this point, wait for image generation to finish
-            if st.session_state.stream_story:
-                image_generation_thread.join()
-                image_url = image_generation_thread.image_url
-                game_session.image_url = image_url
-                image_container.empty()
-                with image_container:
-                    st.image(image_url)
-
+                
     # display required action
     if next_events[-1]["event_type"] == "required_action":
         # NOTE: dice_roll action should never get here
