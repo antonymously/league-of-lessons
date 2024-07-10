@@ -13,6 +13,7 @@ def generate_multiple_choice_questions(study_material_txt, n_questions = 10):
     Uses claude to generate multiple choice questions from the study material.
     Produces questions in a prescribed json format.
     '''
+
     prompt = dedent('''
         Use the provided study material to generate {n_questions} multiple choice questions.
         Provide the questions in the following json format.

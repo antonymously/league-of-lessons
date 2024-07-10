@@ -9,6 +9,7 @@ def summarize_current_state(history):
     '''
     Use claude to summarize the current state in preparation for image generation.
     '''
+
     system_prompt = dedent(
     '''
     You will be provided the ongoing history of a Dungeons and Dragons-like game in json format.
