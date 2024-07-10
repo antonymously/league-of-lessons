@@ -91,8 +91,6 @@ def check_api_keys_available():
     key_names = [
         ('_anthropic_api_key', 'ANTHROPIC_API_KEY'),
         ('_openai_api_key', 'OPENAI_API_KEY'),
-        ('_pyht_user_id', 'PYHT_USER_ID'),
-        ('_pyht_secret', 'PYHT_SECRET'),
     ]
     keys_available = True
     for key_name in key_names:
