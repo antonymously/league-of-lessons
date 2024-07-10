@@ -1,9 +1,12 @@
 import streamlit as st
+from streamlit.runtime.scriptrunner import add_script_run_ctx
+from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
 from textwrap import dedent
 from typing import Optional
 from copy import copy
 import pickle
 import time
+import threading
 from league_of_lessons import SAVE_GAME_FILEPATH
 from league_of_lessons.game_session import GameSession
 from league_of_lessons.tts.tts import text_to_speech
@@ -73,8 +76,11 @@ with game_container:
     image_container = st.empty()
 
 with image_container:
-    # st.image("./assets/placeholder.png")
+    # st.image("./assets/loading.gif")
     img_spinner = st.spinner(text = "Loading...")
+    # st.html('''
+    # <img src="./assets/loading.gif" class="loading-gif"> 
+    # ''')
 
 with game_container:
     audio_container = st.empty()
@@ -120,6 +126,23 @@ def apply_game_action(action: Optional[dict] = None):
 
     # set stream story to true
     st.session_state.stream_story = True
+
+class ImageGenerationThread(threading.Thread):
+
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.image_url = None
+
+    def run(self):
+        with img_spinner:
+            # make summary of current scenario for image generation
+            scenario_summary = summarize_current_state(
+                story_history_only(
+                    game_session.history
+                )
+            )
+            image_url = generate_image_from_story_lines(scenario_summary)
+        self.image_url = image_url
 
 def display_current_game_state():
 
@@ -172,21 +195,12 @@ def display_current_game_state():
             # generate image from the scenario summary
             # TODO: do this in parallel
             if st.session_state.stream_story:
-                with img_spinner:
-                    # make summary of current scenario for image generation
-                    scenario_summary = summarize_current_state(
-                        story_history_only(
-                            game_session.history
-                        )
-                    )
-                    image_url = generate_image_from_story_lines(scenario_summary)
-                game_session.image_url = image_url
-                image_container.empty()
-                with image_container:
-                    st.image(image_url)
+                image_generation_thread = ImageGenerationThread()
+                ctx = get_script_run_ctx()
+                add_script_run_ctx(image_generation_thread)
+                image_generation_thread.start()
             else:
                 image_container.empty()
-                print("image url:", game_session.image_url)
                 with image_container:
                     st.image(game_session.image_url)
 
@@ -220,6 +234,15 @@ def display_current_game_state():
                     )
                 else:
                     story_text = st.write(event["story"])
+
+            # at this point, wait for image generation to finish
+            if st.session_state.stream_story:
+                image_generation_thread.join()
+                image_url = image_generation_thread.image_url
+                game_session.image_url = image_url
+                image_container.empty()
+                with image_container:
+                    st.image(image_url)
 
     # display required action
     if next_events[-1]["event_type"] == "required_action":
@@ -354,6 +377,10 @@ st.markdown("""
     div[data-testid="stMarkdownContainer"] p {
         max-height: 500px;
         overflow-y: auto;
+    }
+    img.loading-gif {
+        width: 100px;
+        height: auto;
     }
     </style>
     """, 
