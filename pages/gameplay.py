@@ -83,6 +83,9 @@ with game_container:
     question_container = st.empty()
     input_container = st.empty()
 
+with audio_container:
+    audio_spinner = st.spinner(text = "Loading...")
+
 def display_history():
     # write history
     with history_expander:

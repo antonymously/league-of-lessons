@@ -87,6 +87,26 @@ if (st.session_state._pyht_user_id is not None) and (st.session_state._pyht_secr
 if not os.path.exists("./data"):
     os.makedirs("./data") 
 
+def check_api_keys_available():
+    key_names = [
+        ('_anthropic_api_key', 'ANTHROPIC_API_KEY'),
+        ('_openai_api_key', 'OPENAI_API_KEY'),
+        ('_pyht_user_id', 'PYHT_USER_ID'),
+        ('_pyht_secret', 'PYHT_SECRET'),
+    ]
+    keys_available = True
+    for key_name in key_names:
+        if st.session_state[key_name[0]] is not None:
+            continue
+        if os.getenv(key_name[1], default = None) is not None:
+            continue
+        keys_available = False
+        break
+        
+    return keys_available
+
+st.session_state.api_keys_available = check_api_keys_available()
+
 def main():
 
     top_cols = st.columns([1 for i in range(4)])
@@ -112,13 +132,13 @@ def main():
         if st.button(
             "New Game", 
             use_container_width=True,
-            disabled = (not st.session_state.question_set_available),
+            disabled = ((not st.session_state.question_set_available) or (not st.session_state.api_keys_available)),
         ):
             st.session_state.game_state = None
             st.switch_page("pages/gameplay.py")
 
         if st.button("Continue Game", 
-            disabled = ((not os.path.exists(SAVE_GAME_FILEPATH)) or (not st.session_state.question_set_available)), 
+            disabled = ((not os.path.exists(SAVE_GAME_FILEPATH)) or (not st.session_state.question_set_available) or (not st.session_state.api_keys_available)), 
             use_container_width=True
         ):
             with open(SAVE_GAME_FILEPATH, "rb") as f:
