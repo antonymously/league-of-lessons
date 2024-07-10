@@ -7,6 +7,7 @@ import time
 from league_of_lessons import SAVE_GAME_FILEPATH
 from league_of_lessons.game_session import GameSession
 from league_of_lessons.tts.tts import text_to_speech
+from league_of_lessons.image.image import generate_image_from_story_lines
 from league_of_lessons.game_generation.history_management import summarize_current_state
 from league_of_lessons.utils import fake_stream_text, history_to_text, story_history_only
 
@@ -168,6 +169,11 @@ def display_current_game_state():
             )
 
             # TODO: generate image from the scenario summary
+            # TODO: do this in parallel
+            image_url = generate_image_from_story_lines(scenario_summary)
+            image_container.empty()
+            with image_container:
+                st.image(image_url)
 
             # generate the narration
             # TODO: can this be done async while streaming story?
