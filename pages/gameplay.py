@@ -1,6 +1,7 @@
 import streamlit as st
 from streamlit.runtime.scriptrunner import add_script_run_ctx
 from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
+import streamlit.components.v1 as components
 from textwrap import dedent
 from typing import Optional
 from copy import copy
@@ -93,14 +94,16 @@ def scroll_to_bottom():
     
     # NOTE: does not execute
     with scroll_container:
-        st.markdown(
+        components.html(
             """
             <script>
-            var element = document.getElementById("bottom-target");
-            element.scrollIntoView({behavior: "smooth"});
+            function scroll() {
+                var element = document.getElementById("bottom-target");
+                element.scrollIntoView({behavior: "smooth"});
+            }
+            scroll();
             </script>
             """,
-            unsafe_allow_html=True,
         )
     scroll_container.empty()
 
