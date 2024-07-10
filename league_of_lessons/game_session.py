@@ -32,6 +32,8 @@ class GameState:
         _current_answer: Optional[dict] = None,
         _next_events: Optional[list] = None,
         _study_score: Optional[list] = [0,0],
+        image_url: Optional = None,
+        narration_audio: Optional = None,
     ):
         self.history = history
         self.img_path = img_path
@@ -41,6 +43,9 @@ class GameState:
         self._current_answer = _current_answer
         self._next_events = _next_events
         self._study_score = _study_score
+
+        self.image_url = image_url
+        self.narration_audio = narration_audio
 
 class GameSession:
 
@@ -64,6 +69,9 @@ class GameSession:
         self._next_events = None
         self._study_score = [0,0]
 
+        self.image_url = None
+        self.narration_audio = None
+
     def load_state(self, game_state: GameState):
         self.history = game_state.history
         self.img_path = game_state.img_path
@@ -74,6 +82,9 @@ class GameSession:
         self._current_answer = game_state._current_answer
         self._next_events = game_state._next_events
         self._study_score = game_state._study_score
+
+        self.image_url = game_state.image_url
+        self.narration_audio = game_state.narration_audio
 
     def get_game_state(self):
         '''
@@ -92,6 +103,8 @@ class GameSession:
             _current_answer = self._current_answer,
             _next_events = self._next_events,
             _study_score = self._study_score,
+            image_url = self.image_url,
+            narration_audio = self.narration_audio,
         )
 
     def next(self, action: Optional[dict] = None):

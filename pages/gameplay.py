@@ -42,6 +42,10 @@ def save_game():
     # don't stream text when save button is clicked
     st.session_state.stream_story = False
 
+    # also update the session_state game_state
+    # to keep the image and audio
+    st.session_state.game_state = game_session.get_game_state()
+
 top_cols = st.columns([1 for i in range(4)])
 
 with top_cols[0]:
@@ -168,18 +172,26 @@ def display_current_game_state():
                 )
             )
 
-            # TODO: generate image from the scenario summary
+            # generate image from the scenario summary
             # TODO: do this in parallel
-            image_url = generate_image_from_story_lines(scenario_summary)
-            image_container.empty()
-            with image_container:
-                st.image(image_url)
+            if st.session_state.stream_story:
+                image_url = generate_image_from_story_lines(scenario_summary)
+                game_session.image_url = image_url
+                image_container.empty()
+                with image_container:
+                    st.image(image_url)
+            else:
+                image_container.empty()
+                print("image url:", game_session.image_url)
+                with image_container:
+                    st.image(game_session.image_url)
+
 
             # generate the narration
             # TODO: can this be done async while streaming story?
-            # TODO: save this to game state
             if st.session_state.stream_story:
                 narration_audio = text_to_speech(event["story"])
+                game_session.narration_audio = narration_audio
                 with audio_container:
                     st.audio(
                         narration_audio,
@@ -187,8 +199,12 @@ def display_current_game_state():
                         autoplay = True,
                     )
             else:
-                # TEMP: no audio when load game
-                pass
+                with audio_container:
+                    st.audio(
+                        game_session.narration_audio,
+                        loop = False,
+                        autoplay = True,
+                    )
 
             with story_container:
                 if st.session_state.stream_story:

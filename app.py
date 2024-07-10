@@ -123,7 +123,8 @@ def main():
         ):
             with open(SAVE_GAME_FILEPATH, "rb") as f:
                 st.session_state.game_state = pickle.load(f)
-            
+            # don't stream when loading game
+            st.session_state.stream_story = False
             st.switch_page("pages/gameplay.py")
 
         if viewer_role == "Teacher":
