@@ -171,7 +171,6 @@ class StoryStreamingThread(threading.Thread):
                     )
                 )
 
-
 def display_current_game_state():
 
     st.session_state.action_input = None
