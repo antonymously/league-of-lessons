@@ -9,7 +9,7 @@ import time
 import threading
 from league_of_lessons import SAVE_GAME_FILEPATH
 from league_of_lessons.game_session import GameSession
-from league_of_lessons.tts.tts import text_to_speech
+from league_of_lessons.tts.tts import text_to_speech, text_to_speech_openai
 from league_of_lessons.image.image import generate_image_from_story_lines
 from league_of_lessons.game_generation.history_management import summarize_current_state
 from league_of_lessons.utils import fake_stream_text, history_to_text, story_history_only
@@ -208,7 +208,7 @@ def display_current_game_state():
             # generate the narration
             # TODO: can this be done async while streaming story?
             if st.session_state.stream_story:
-                narration_audio = text_to_speech(event["story"])
+                narration_audio = text_to_speech_openai(event["story"])
                 game_session.narration_audio = narration_audio
                 with audio_container:
                     st.audio(

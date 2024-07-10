@@ -5,14 +5,30 @@ import wave
 import os
 import requests
 import json
+from league_of_lessons import OPENAI_CLIENT
 
 if not os.environ.get('PYHT_VOICE_NARRATOR', False):
 
     # Set default Voice
     os.environ['PYHT_VOICE_NARRATOR'] = 's3://voice-cloning-zero-shot/b3def996-302e-486f-a234-172fa0279f0e/anthonysaad/manifest.json'
 
+if not os.path.exists("./assets/narration"):
+    os.makedirs("./assets/narration") 
+
 PYHT_USER_ID = os.environ['PYHT_USER_ID']
 PYHT_SECRET = os.environ['PYHT_SECRET']
+
+def text_to_speech_openai(text_to_convert):
+    narration_file_path = "./assets/narration/narration.mp3"
+
+    response = OPENAI_CLIENT.audio.speech.create(
+        model = "tts-1",
+        voice = "onyx",
+        input = text_to_convert
+    )
+
+    response.stream_to_file(narration_file_path)
+    return narration_file_path
 
 def set_pyht_keys(pyht_user_id, pyht_secret):
     # use this to set pyht keys externally

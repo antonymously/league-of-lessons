@@ -1,5 +1,6 @@
 # Custom
 data/*
+assets/narration/*
 
 # Python
 __pycache__/
