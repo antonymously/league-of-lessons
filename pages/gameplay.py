@@ -10,7 +10,7 @@ import time
 import threading
 from league_of_lessons import SAVE_GAME_FILEPATH
 from league_of_lessons.game_session import GameSession
-from league_of_lessons.tts.tts import text_to_speech, text_to_speech_openai
+from league_of_lessons.tts.tts import text_to_speech
 from league_of_lessons.image.image import generate_image_from_story_lines
 from league_of_lessons.game_generation.history_management import summarize_current_state
 from league_of_lessons.utils import fake_stream_text, history_to_text, story_history_only
@@ -173,8 +173,8 @@ class StoryStreamingThread(threading.Thread):
         self.event = event
         
     def run(self):
-
-        narration_audio = text_to_speech_openai(self.event["story"])
+        
+        narration_audio = text_to_speech(self.event["story"])
         game_session.narration_audio = narration_audio
         audio_container.empty()
         with audio_container:

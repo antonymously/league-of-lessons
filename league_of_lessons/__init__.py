@@ -12,6 +12,7 @@ load_dotenv()
 MODEL_NAME = "claude-3-5-sonnet-20240620"
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+TTS_SERVICE = os.getenv("TTS_SERVICE")
 
 ANTHROPIC_CLIENT = anthropic.Anthropic(api_key = ANTHROPIC_API_KEY)
 OPENAI_CLIENT = OpenAI(api_key = OPENAI_API_KEY)

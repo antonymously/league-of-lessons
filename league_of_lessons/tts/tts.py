@@ -5,7 +5,7 @@ import wave
 import os
 import requests
 import json
-from league_of_lessons import OPENAI_CLIENT
+from league_of_lessons import OPENAI_CLIENT, TTS_SERVICE
 
 if not os.environ.get('PYHT_VOICE_NARRATOR', False):
 
@@ -17,6 +17,12 @@ if not os.path.exists("./assets/narration"):
 
 PYHT_USER_ID = os.environ['PYHT_USER_ID']
 PYHT_SECRET = os.environ['PYHT_SECRET']
+
+def text_to_speech(text_to_convert):
+    if TTS_SERVICE == "OPENAI":
+        return text_to_speech_openai(text_to_convert)
+    else:
+        return text_to_speech_pyht(text_to_convert)
 
 def text_to_speech_openai(text_to_convert):
     narration_file_path = "./assets/narration/narration.mp3"
@@ -35,7 +41,7 @@ def set_pyht_keys(pyht_user_id, pyht_secret):
     PYHT_USER_ID = pyht_user_id
     PYHT_SECRET = pyht_secret
 
-def text_to_speech(text_to_convert):
+def text_to_speech_pyht(text_to_convert):
     """Convert text to speech using pyht API"""
 
     client = Client(
