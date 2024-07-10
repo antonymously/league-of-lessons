@@ -17,6 +17,9 @@ TTS_SERVICE = os.getenv("TTS_SERVICE", "OPENAI")
 PYHT_USER_ID = os.getenv("PYHT_USER_ID")
 PYHT_SECRET = os.getenv("PYHT_SECRET")
 
+global ANTHROPIC_CLIENT
+global OPENAI_CLIENT
+
 if ANTHROPIC_API_KEY is not None:
     ANTHROPIC_CLIENT = anthropic.Anthropic(api_key = ANTHROPIC_API_KEY)
 else:
