@@ -24,9 +24,10 @@ To run the application, you will need API keys from Anthropic, OpenAI and (Optio
 These can be acquired thru the following platforms:
 1. Anthropic: https://console.anthropic.com
 2. OpenAI: https://platform.openai.com/
-3. PlayHT: https://play.ht
+3. (Optional) PlayHT: https://play.ht
 
-Once obtained, you can use these by creating a .env file or using the 'Manage API Keys' page in the app.
+Once obtained, create a .env file following the .env.example template. 
+After this, keys can also be managed in-app.
 
 ## Running the Application
 
