@@ -73,7 +73,8 @@ with game_container:
     image_container = st.empty()
 
 with image_container:
-    st.image("./assets/placeholder.png")
+    # st.image("./assets/placeholder.png")
+    img_spinner = st.spinner(text = "Loading...")
 
 with game_container:
     audio_container = st.empty()
@@ -165,17 +166,17 @@ def display_current_game_state():
     for event in next_events:
         if event["event_type"] == "story_block":
 
-            # make summary of current scenario for image generation
-            scenario_summary = summarize_current_state(
-                story_history_only(
-                    game_session.history
-                )
-            )
-
             # generate image from the scenario summary
             # TODO: do this in parallel
             if st.session_state.stream_story:
-                image_url = generate_image_from_story_lines(scenario_summary)
+                with img_spinner:
+                    # make summary of current scenario for image generation
+                    scenario_summary = summarize_current_state(
+                        story_history_only(
+                            game_session.history
+                        )
+                    )
+                    image_url = generate_image_from_story_lines(scenario_summary)
                 game_session.image_url = image_url
                 image_container.empty()
                 with image_container:
