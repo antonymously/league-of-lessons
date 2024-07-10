@@ -18,6 +18,16 @@ the `requirements.txt` directly.
 pip install -r requirements.txt
 ```
 
+## Getting API Keys
+
+To run the application, you will need API keys from Anthropic, OpenAI and (Optional) PlayHT.
+These can be acquired thru the following platforms:
+1. Anthropic: https://console.anthropic.com
+2. OpenAI: https://platform.openai.com/
+3. PlayHT: https://play.ht
+
+Once obtained, you can use these by creating a .env file or using the 'Manage API Keys' page in the app.
+
 ## Running the Application
 
 To run the application, do the following command:
