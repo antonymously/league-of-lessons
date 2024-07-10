@@ -80,8 +80,29 @@ with game_container:
     question_container = st.empty()
     input_container = st.empty()
 
+    # dummy target for scrolling to bottom
+    scroll_container = st.empty()
+    bottom_div = st.html('''
+        <div id="bottom-target"></div>
+    ''')
+
 with audio_container:
     audio_spinner = st.spinner(text = "Loading...")
+
+def scroll_to_bottom():
+    
+    # NOTE: does not execute
+    with scroll_container:
+        st.markdown(
+            """
+            <script>
+            var element = document.getElementById("bottom-target");
+            element.scrollIntoView({behavior: "smooth"});
+            </script>
+            """,
+            unsafe_allow_html=True,
+        )
+    scroll_container.empty()
 
 def display_history():
     # write history
@@ -161,6 +182,7 @@ class StoryStreamingThread(threading.Thread):
             )
 
         story_container.empty()
+        scroll_to_bottom()
         with story_container:
             if st.session_state.stream_story:
                 story_text = st.write_stream(
@@ -256,6 +278,7 @@ def display_current_game_state():
                     )
 
                 story_container.empty()
+                scroll_to_bottom()
                 with story_container:
                     story_text = st.write(event["story"])
                 
