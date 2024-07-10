@@ -74,15 +74,6 @@ game_container = st.container()
 with game_container:
     history_expander = st.expander('History')
     image_container = st.empty()
-
-with image_container:
-    # st.image("./assets/loading.gif")
-    img_spinner = st.spinner(text = "Loading...")
-    # st.html('''
-    # <img src="./assets/loading.gif" class="loading-gif"> 
-    # ''')
-
-with game_container:
     audio_container = st.empty()
     answer_assessment_container = st.empty()
     story_container = st.empty()
@@ -134,14 +125,22 @@ class ImageGenerationThread(threading.Thread):
         self.image_url = None
 
     def run(self):
-        with img_spinner:
-            # make summary of current scenario for image generation
-            scenario_summary = summarize_current_state(
-                story_history_only(
-                    game_session.history
-                )
+        image_container.empty()
+        with image_container:
+            # NOTE: height units doesn't seem to be same as resulting image
+            spinner_container = st.container(
+                border = True,
             )
-            image_url = generate_image_from_story_lines(scenario_summary)
+
+        with spinner_container:
+            with st.spinner(""):
+                # make summary of current scenario for image generation
+                scenario_summary = summarize_current_state(
+                    story_history_only(
+                        game_session.history
+                    )
+                )
+                image_url = generate_image_from_story_lines(scenario_summary)
         self.image_url = image_url
 
 class StoryStreamingThread(threading.Thread):
@@ -239,6 +238,7 @@ def display_current_game_state():
                 image_generation_thread.join()
                 image_url = image_generation_thread.image_url
                 game_session.image_url = image_url
+
                 image_container.empty()
                 with image_container:
                     st.image(image_url)
@@ -393,9 +393,18 @@ st.markdown("""
         max-height: 500px;
         overflow-y: auto;
     }
-    img.loading-gif {
-        width: 100px;
-        height: auto;
+    div.stSpinner {
+        position: relative;
+        height: 400px;
+    }
+    div.stSpinner div {
+        text-align:center;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
     }
     </style>
     """, 
